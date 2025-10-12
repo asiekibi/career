@@ -14,6 +14,9 @@ class CertificateEducation extends Model
      *
      * @var array<int, string>
      */
+
+    protected $table = 'certificate_educations';
+
     protected $fillable = [
         'certificate_id',
         'course_name',

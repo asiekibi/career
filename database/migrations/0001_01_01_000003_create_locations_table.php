@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('parent_id')->default(0);
             $table->string('location')->nullable();
+            $table->unsignedBigInteger('city_id')->nullable(); // İl ID'si
         });
     }
 

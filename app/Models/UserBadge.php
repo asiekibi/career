@@ -21,6 +21,13 @@ class UserBadge extends Model
     ];
 
     /**
+     * Indicates if the model should be timestamped.
+     *
+     * @var bool
+     */
+    public $timestamps = false;
+
+    /**
      * Get the user that owns the badge.
     */
     public function user()

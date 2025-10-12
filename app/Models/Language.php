@@ -10,6 +10,13 @@ class Language extends Model
     use HasFactory;
 
     /**
+     * The table associated with the model.
+     *
+     * @var string
+     */
+    protected $table = 'languages';
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var array<int, string>
@@ -20,4 +27,12 @@ class Language extends Model
         'level',
         'description',
     ];
+
+    /**
+     * Get the CV that the language belongs to.
+     */
+    public function cv()
+    {
+        return $this->belongsTo(Cv::class);
+    }
 }

@@ -22,4 +22,12 @@ class Experience extends Model
         'end_date',
         'description',
     ];
+
+    /**
+     * Get the CV that the experience belongs to.
+     */
+    public function cv()
+    {
+        return $this->belongsTo(Cv::class);
+    }
 }

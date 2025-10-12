@@ -27,12 +27,15 @@ class User extends Authenticatable
         'email',
         'password',
         'gender',
+        'role',
         'birth_date',
         'gsm',
         'point',
         'location_id',
+        'district_id', // Yeni eklenen alan
         'contact_info',
         'profile_photo_url',
+        'is_active',
     ];
 
     /**
@@ -98,4 +101,37 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(Log::class, 'user_logs');
     }
+    
+    /**
+     * Get the experiences for the user through CVs.
+     */
+    public function experiences()
+    {
+        return $this->hasManyThrough(Experience::class, Cv::class, 'user_id', 'cv_id');
+    }
+
+    /**
+     * Get the educations for the user through CVs.
+     */
+    public function educations()
+    {
+        return $this->hasManyThrough(Education::class, Cv::class, 'user_id', 'cv_id');
+    }
+
+    /**
+     * Get the abilities for the user through CVs.
+     */
+    public function abilities()
+    {
+        return $this->hasManyThrough(Ability::class, Cv::class, 'user_id', 'cv_id');
+    }
+
+    /**
+     * Get the languages for the user through CVs.
+     */
+    public function languages()
+    {
+        return $this->hasManyThrough(Language::class, Cv::class, 'user_id', 'cv_id');
+    }
+
 }

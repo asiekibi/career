@@ -19,12 +19,15 @@ return new class extends Migration
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->enum('gender', ['woman', 'man', 'other']);
+            $table->enum('role', ['admin', 'user'])->default('user');
             $table->date('birth_date');
             $table->string('gsm');
             $table->string('point');
             $table->string('location_id');
-            $table->text('contact_info')->nullable();
-            $table->string('profile_photo_url')->nullable();
+            $table->string('district_id');
+            $table->boolean('contact_info')->default(true);
+            $table->text('profile_photo_url')->nullable();
+            $table->boolean('is_active')->default(true);
             $table->softDeletes();
             $table->rememberToken();
             $table->timestamps();

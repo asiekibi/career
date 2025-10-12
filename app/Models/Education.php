@@ -10,6 +10,13 @@ class Education extends Model
     use HasFactory;
 
     /**
+     * The table associated with the model.
+     *
+     * @var string
+     */
+    protected $table = 'educations';
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var array<int, string>
@@ -23,4 +30,12 @@ class Education extends Model
         'end_date',
         'description',
     ];
+
+    /**
+     * Get the CV that the education belongs to.
+     */
+    public function cv()
+    {
+        return $this->belongsTo(Cv::class);
+    }
 }

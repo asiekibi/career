@@ -9,6 +9,7 @@ class Location extends Model
 {
     use HasFactory;
 
+    public $timestamps = false;
     /**
      * The attributes that are mass assignable.
      *
@@ -17,6 +18,7 @@ class Location extends Model
     protected $fillable = [
         'parent_id',
         'location',
+        'city_id',
     ];
 
     /**

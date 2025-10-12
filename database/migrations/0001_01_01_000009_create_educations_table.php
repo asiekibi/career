@@ -15,10 +15,10 @@ return new class extends Migration
             $table->id();
             $table->foreignId('cv_id')->constrained()->onDelete('cascade');
             $table->string('school_name');
-            $table->enum('degree', ['bachelor', 'master', 'phd', 'associate', 'diploma', 'certificate']);
+            $table->string('degree', 50); // enum yerine string
             $table->string('field_of_study');
             $table->date('start_date');
-            $table->date('end_date');
+            $table->date('end_date')->nullable();
             $table->text('description');
             $table->timestamps();
         });

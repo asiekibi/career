@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('cv_id')->constrained()->onDelete('cascade');
             $table->string('language_name');
             $table->enum('level', ['basic', 'conversational', 'fluent', 'native']);
-            $table->text('description');
+            $table->text('description')->nullable();
             $table->timestamps();
         });
     }
