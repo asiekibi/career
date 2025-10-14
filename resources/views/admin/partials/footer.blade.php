@@ -1,4 +1,6 @@
-
+</div>
+</div>
+</body>
     <script>
         // hamburger menu javascript
         const mobileMenuButton = document.getElementById('mobile-menu-button');
