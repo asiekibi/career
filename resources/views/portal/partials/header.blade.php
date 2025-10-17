@@ -54,17 +54,38 @@
                     <h1 class="text-2xl font-bold text-gray-800 dark:text-white">Portal</h1>
                 </div>
                 <nav class="flex-1 px-4 py-2">
-                    <a class="flex items-center gap-3 px-4 py-2 rounded-lg {{ request()->routeIs('portal-login') ? 'bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800' }}" href="{{ route('portal-login') }}">
-                        <span class="material-symbols-outlined">search</span>
-                        <span class="text-sm font-medium">Sertifika Sorgula</span>
-                    </a>
-                    <a class="mt-2 flex items-center gap-3 px-4 py-2 rounded-lg {{ request()->routeIs('portal.career-sequence') ? 'bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800' }}" href="{{ route('portal.career-sequence') }}">
-                        <span class="material-symbols-outlined">leaderboard</span>
-                        <span class="text-sm font-medium">Kariyer Sıralaması</span>
-                    </a>
+                    @if(session('student_id'))
+                        <a class="flex items-center gap-3 px-4 py-2 rounded-lg {{ request()->routeIs('portal.student.cv') ? 'bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800' }}" href="{{ route('portal.student.cv', ['userId' => session('student_id')]) }}">
+                            <span class="material-symbols-outlined">person</span>
+                            <span class="text-sm font-medium">CV Görüntüle</span>
+                        </a>
+                        <a class="mt-2 flex items-center gap-3 px-4 py-2 rounded-lg {{ request()->routeIs('portal.career-sequence') ? 'bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800' }}" href="{{ route('portal.career-sequence') }}">
+                            <span class="material-symbols-outlined">leaderboard</span>
+                            <span class="text-sm font-medium">Kariyer Sıralaması</span>
+                        </a>
+                        
+                        @if(!session('is_company_auth'))
+                            <a class="mt-2 flex items-center gap-3 px-4 py-2 rounded-lg {{ request()->routeIs('portal.partner-company') ? 'bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800' }}" href="{{ route('portal.partner-company') }}">
+                                <span class="material-symbols-outlined">business</span>
+                                <span class="text-sm font-medium">Partner Firma Ol</span>
+                            </a>
+                        @endif
+                    @else
+                        <a class="flex items-center gap-3 px-4 py-2 rounded-lg {{ request()->routeIs('portal-login') ? 'bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800' }}" href="{{ route('portal-login') }}">
+                            <span class="material-symbols-outlined">search</span>
+                            <span class="text-sm font-medium">Sertifika Sorgula</span>
+                        </a>
+                    @endif
                 </nav>
                 
-                <!-- Çıkış butonu kaldırıldı -->
+                @if(session('student_id'))
+                    <div class="p-4 border-t border-gray-200 dark:border-gray-800">
+                        <a href="{{ route('portal-login') }}" class="flex items-center gap-3 px-4 py-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800">
+                            <span class="material-symbols-outlined">logout</span>
+                            <span class="text-sm font-medium">Çıkış</span>
+                        </a>
+                    </div>
+                @endif
             </aside>
 
             <div class="flex-1 flex flex-col lg:ml-0 min-w-0">
@@ -72,7 +93,7 @@
                 <header class="flex items-center justify-between h-16 px-4 lg:px-6 bg-white dark:bg-background-dark border-b border-gray-200 dark:border-gray-800">
                     <!-- Mobile title -->
                     <div class="lg:hidden">
-                        <h1 class="text-lg font-bold text-gray-800 dark:text-white">CV Düzenle</h1>
+                        <h1 class="text-lg font-bold text-gray-800 dark:text-white">Portal</h1>
                     </div>
 
                     <!-- Mobile hamburger menu - Right aligned -->

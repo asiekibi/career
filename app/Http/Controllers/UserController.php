@@ -676,4 +676,35 @@ class UserController extends Controller
             'message' => 'Profil başarıyla güncellendi!'
         ]);
     }
+
+    /**
+     * Partner companies listesi - admin pages
+     */
+    public function partnerCompanies(): View
+    {
+        $partnerCompanies = \App\Models\PartnerCompany::orderBy('created_at', 'desc')->get();
+        return view('admin.partner-companies', compact('partnerCompanies'));
+    }
+
+    /**
+     * Partner company permission güncelleme
+     */
+    public function updatePartnerPermission(Request $request, $id)
+    {
+        try {
+            $company = \App\Models\PartnerCompany::findOrFail($id);
+            $company->has_permission = $request->has_permission;
+            $company->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'İzin durumu güncellendi'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Hata: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }

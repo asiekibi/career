@@ -68,6 +68,8 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
 
     
     Route::get('/students', [UserController::class, 'index'])->name('admin.students');
+    Route::get('/partner-companies', [UserController::class, 'partnerCompanies'])->name('admin.partner-companies');
+    Route::post('/partner-companies/{id}/permission', [UserController::class, 'updatePartnerPermission'])->name('admin.partner-companies.permission');
   
 
 
@@ -114,9 +116,11 @@ Route::post('/user/update-profile', [UserController::class, 'updateProfile'])->n
 
 
 // Portal routes - prefix ile grupla
-Route::prefix('portal')->group(function () {
+Route::prefix('portal')->middleware('portal.auth')->group(function () {
     Route::get('/', [PortalController::class, 'showPortalLogin'])->name('portal-login');
     Route::post('/search', [PortalController::class, 'searchCertificate'])->name('portal.search');
     Route::get('/student-cv/{userId}', [PortalController::class, 'showStudentCv'])->name('portal.student.cv');
     Route::get('/career-sequence', [PortalController::class, 'careerSequence'])->name('portal.career-sequence');
+    Route::get('/partner-company', [PortalController::class, 'partnerCompany'])->name('portal.partner-company');
+    Route::post('/partner-company', [PortalController::class, 'storePartnerCompany'])->name('portal.partner-company.store');
 });

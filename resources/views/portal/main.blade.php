@@ -2,6 +2,29 @@
 
 <!-- main content -->
 <main class="flex-1 p-8">
+    <!-- Giriş Bilgisi Banner -->
+    <div class="mb-6 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+        <div class="flex items-center gap-3">
+            <span class="material-symbols-outlined text-blue-600 dark:text-blue-400">info</span>
+            <div>
+                <h3 class="font-semibold text-blue-800 dark:text-blue-200">
+                    @if($loginType == 'company')
+                        Firma Girişi Yapıldı
+                    @else
+                        Öğrenci Girişi Yapıldı
+                    @endif
+                </h3>
+                <p class="text-sm text-blue-600 dark:text-blue-300">
+                    @if($loginType == 'company')
+                        {{ $companyName }} firması adına giriş yapıldı
+                    @else
+                        Sertifika kodu ile giriş yapıldı
+                    @endif
+                </p>
+            </div>
+        </div>
+    </div>
+
     <div class="bg-white dark:bg-background-dark rounded-xl shadow-sm">
         <div class="p-6 border-b border-gray-200 dark:border-gray-800 flex justify-between items-center">
             <div>

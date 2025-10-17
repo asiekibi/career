@@ -52,17 +52,25 @@
                                     </div>
                                 </th>
                                 <td class="px-6 py-4">
-                                    @if($student->contact_info)
+                                    @if(session('is_company_auth'))
                                         {{ $student->gsm ?? 'Belirtilmemiş' }}
                                     @else
-                                        *
+                                        @if($student->contact_info)
+                                            {{ $student->gsm ?? 'Belirtilmemiş' }}
+                                        @else
+                                            *
+                                        @endif
                                     @endif
                                 </td>
                                 <td class="px-6 py-4">
-                                    @if($student->contact_info)
+                                    @if(session('is_company_auth'))
                                         {{ $student->email }}
                                     @else
-                                        *
+                                        @if($student->contact_info)
+                                            {{ $student->email }}
+                                        @else
+                                            *
+                                        @endif
                                     @endif
                                 </td>
                                 <td class="px-6 py-4 font-bold text-gray-900 dark:text-white">
@@ -80,6 +88,7 @@
             </div>
         </div>
 
+        <!-- Mobile Cards -->
         <div class="lg:hidden p-4 space-y-4">
             @foreach($students as $index => $student)
                 <div class="bg-white dark:bg-background-dark/50 rounded-lg shadow-sm p-4 border border-gray-200 dark:border-gray-700" data-student-name="{{ $student->name }} {{ $student->surname }}">
@@ -112,20 +121,28 @@
                         <div>
                             <span class="text-gray-500 dark:text-gray-400">Telefon:</span>
                             <span class="ml-2 text-gray-900 dark:text-white">
-                                @if($student->contact_info)
+                                @if(session('is_company_auth'))
                                     {{ $student->gsm ?? 'Belirtilmemiş' }}
                                 @else
-                                    *
+                                    @if($student->contact_info)
+                                        {{ $student->gsm ?? 'Belirtilmemiş' }}
+                                    @else
+                                        *
+                                    @endif
                                 @endif
                             </span>
                         </div>
                         <div>
                             <span class="text-gray-500 dark:text-gray-400">Email:</span>
                             <span class="ml-2 text-gray-900 dark:text-white">
-                                @if($student->contact_info)
+                                @if(session('is_company_auth'))
                                     {{ $student->email }}
                                 @else
-                                    *
+                                    @if($student->contact_info)
+                                        {{ $student->email }}
+                                    @else
+                                        *
+                                    @endif
                                 @endif
                             </span>
                         </div>

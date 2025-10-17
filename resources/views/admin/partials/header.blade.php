@@ -96,6 +96,14 @@
                 </span>
                 Rozetler
             </a>
+            
+            <!-- Partner Companies menu - Yeni eklenen -->
+            <a class="flex items-center gap-3 px-4 py-2 rounded-lg {{ request()->routeIs('admin.partner-companies') ? 'bg-primary/10 text-primary font-medium' : 'text-gray-600 dark:text-gray-300 hover:bg-primary/10 dark:hover:bg-primary/20 hover:text-primary dark:hover:text-primary transition-colors' }}" href="{{ route('admin.partner-companies') }}">
+                <span class="material-symbols-outlined">
+                    business
+                </span>
+                Partner Firmalar
+            </a>
         </nav>
 
         <!-- Mobile logout button - Only visible on mobile -->
@@ -125,6 +133,8 @@
                     Sertifikalar
                 @elseif(request()->routeIs('admin.badges'))
                     Rozetler
+                @elseif(request()->routeIs('admin.partner-companies'))
+                    Partner Firmalar
                 @else
                     Admin Panel
                 @endif

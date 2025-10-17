@@ -29,20 +29,28 @@
                         <div class="flex items-center text-gray-600 dark:text-gray-300 justify-center sm:justify-start">
                             <span class="material-symbols-outlined mr-2 text-sm">phone</span>
                             <span class="text-sm lg:text-base">
-                                @if($student->contact_info)
+                                @if(session('is_company_auth'))
                                     {{ $student->gsm ?? 'Belirtilmemiş' }}
                                 @else
-                                    ***
+                                    @if($student->contact_info)
+                                        {{ $student->gsm ?? 'Belirtilmemiş' }}
+                                    @else
+                                        ***
+                                    @endif
                                 @endif
                             </span>
                         </div>
                         <div class="flex items-center text-gray-600 dark:text-gray-300 justify-center sm:justify-start">
                             <span class="material-symbols-outlined mr-2 text-sm">email</span>
                             <span class="text-sm lg:text-base">
-                                @if($student->contact_info)
+                                @if(session('is_company_auth'))
                                     {{ $student->email }}
                                 @else
-                                    ***
+                                    @if($student->contact_info)
+                                        {{ $student->email }}
+                                    @else
+                                        ***
+                                    @endif
                                 @endif
                             </span>
                         </div>
