@@ -120,11 +120,20 @@
                                 </td>
                                 <td class="px-6 py-4">{{ $userCertificate->achievement_score ?? 'Belirtilmemiş' }}</td>
                                 <td class="px-6 py-4 text-right">
-                                    <button type="button" 
-                                            class="text-red-600 dark:text-red-500 hover:text-red-800 dark:hover:text-red-400"
-                                            onclick="confirmDeleteCertificate({{ $userCertificate->id }}, '{{ $user->name }}', '{{ $user->surname }}')">
-                                        <span class="material-symbols-outlined">delete</span>
-                                    </button>
+                                    <div class="flex items-center justify-end gap-2">
+                                        <a href="{{ route('admin.students.certificate.download', $userCertificate->id) }}" 
+                                           target="_blank"
+                                           class="text-primary dark:text-primary hover:text-primary/80 dark:hover:text-primary/80"
+                                           title="Sertifikayı İndir">
+                                            <span class="material-symbols-outlined">download</span>
+                                        </a>
+                                        <button type="button" 
+                                                class="text-red-600 dark:text-red-500 hover:text-red-800 dark:hover:text-red-400"
+                                                onclick="confirmDeleteCertificate({{ $userCertificate->id }}, '{{ $user->name }}', '{{ $user->surname }}')"
+                                                title="Sertifikayı Sil">
+                                            <span class="material-symbols-outlined">delete</span>
+                                        </button>
+                                    </div>
                                     
                                     <!-- Gizli form -->
                                     <form id="delete-certificate-form-{{ $userCertificate->id }}" 

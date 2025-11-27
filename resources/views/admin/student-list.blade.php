@@ -15,6 +15,14 @@
                        class="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary dark:bg-gray-800 dark:text-white">
                 <span class="material-symbols-outlined absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm">search</span>
             </div>
+            <!-- Download button -->
+            <a href="{{ route('admin.download.pirus-app') }}" class="flex items-center justify-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors">
+                <span class="material-symbols-outlined">
+                    download
+                </span>
+                <span class="hidden sm:inline">İndir</span>
+                <span class="sm:hidden">İndir</span>
+            </a>
             <!-- student add button -->
             <a href="{{ route('admin.students.create') }}" class="flex items-center justify-center gap-2 px-4 py-2 bg-primary text-white rounded-lg font-medium hover:bg-primary/90 transition-colors">
                 <span class="material-symbols-outlined">

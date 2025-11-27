@@ -11,11 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('locations', function (Blueprint $table) {
+        Schema::create('countries', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('parent_id')->default(0);
-            $table->string('location')->nullable();
-            $table->unsignedBigInteger('city_id')->nullable(); // İl ID'si
+            $table->string('code', 4)->unique()->comment('Ülke kodu (ISO 2-4 harfli)');
+            $table->string('name')->comment('Ülke adı (Türkçe)');
+            $table->timestamps();
         });
     }
 
@@ -24,6 +24,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('locations');
+        Schema::dropIfExists('countries');
     }
 };
+

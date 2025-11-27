@@ -77,9 +77,39 @@
                         <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                     @enderror
                 </div>
-                
+
+                <!-- register number - sadece düzenlemede görünür -->
+                @if(isset($user))
+                    <div>
+                        <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white" for="register_number">Kayıt Numarası</label>
+                        <input class="bg-gray-100 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-400 cursor-not-allowed" 
+                            id="register_number" 
+                            name="register_number" 
+                            value="{{ old('register_number', $user->register_number ?? '') }}" 
+                            readonly
+                            type="text"/>
+                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Kayıt numarası otomatik oluşturulur ve değiştirilemez.</p>
+                    </div>
+                @endif
+            </div>
+            
+            <!-- country, city, district - 3 columns in one row -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
+                <!-- country select -->
+                <div>
+                    <label for="country-select" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Ülke Seçin
+                    </label>
+                    <select id="country-select" name="country_id" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-800 dark:text-white @error('country_id') border-red-500 @enderror" required>
+                        <option value="">Ülke Seçin</option>
+                    </select>
+                    @error('country_id')
+                        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                    @enderror
+                </div>
+
                 <!-- city select -->
-                <div class="mb-4">
+                <div>
                     <label for="city-select" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         İl Seçin
                     </label>
@@ -92,7 +122,7 @@
                 </div>
 
                 <!-- district select -->
-                <div class="mb-4">
+                <div>
                     <label for="district-select" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         İlçe Seçin
                     </label>
@@ -176,25 +206,71 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
+    const countrySelect = document.getElementById('country-select');
     const citySelect = document.getElementById('city-select');
     const districtSelect = document.getElementById('district-select');
     
-    // upload cities
-    loadCities();
+    // load countries
+    loadCountries();
+    
+    // when country changes, load cities
+    countrySelect.addEventListener('change', function() {
+        const countryId = this.value;
+        citySelect.innerHTML = '<option value="">İl Seçin</option>';
+        districtSelect.innerHTML = '<option value="">İlçe Seçin</option>';
+        if (countryId) {
+            loadCitiesByCountry(countryId);
+        }
+    });
     
     // when city changes, load districts
     citySelect.addEventListener('change', function() {
         const cityId = this.value;
         if (cityId) {
+            @if(isset($user) && $user->location_id)
+            const selectedDistrictId = '{{ $user->location_id }}';
+            loadDistricts(cityId, selectedDistrictId);
+            @else
             loadDistricts(cityId);
+            @endif
         } else {
             districtSelect.innerHTML = '<option value="">İlçe Seçin</option>';
         }
     });
     
-    // load cities
-    function loadCities() {
-        fetch('/admin/cities')
+    // load countries
+    function loadCountries() {
+        fetch('/admin/countries')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    countrySelect.innerHTML = '<option value="">Ülke Seçin</option>';
+                    data.data.forEach(country => {
+                        const option = document.createElement('option');
+                        option.value = country.id;
+                        option.textContent = country.name;
+                        countrySelect.appendChild(option);
+                    });
+                    
+                    // Edit modunda seçili değerleri yükle
+                    @if(isset($user) && $user->location)
+                        const userLocation = @json($user->location);
+                        const userCountryId = userLocation ? userLocation.country_id : null;
+                        const userCityId = userLocation ? userLocation.city_id : null;
+                        
+                        if (userCountryId) {
+                            countrySelect.value = userCountryId;
+                            loadCitiesByCountry(userCountryId, userCityId);
+                        }
+                    @endif
+                }
+            })
+            .catch(error => console.error('Error:', error));
+    }
+    
+    // load cities by country
+    function loadCitiesByCountry(countryId, selectedCityId = null) {
+        fetch(`/admin/cities-by-country?country_id=${countryId}`)
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
@@ -203,27 +279,24 @@ document.addEventListener('DOMContentLoaded', function() {
                         const option = document.createElement('option');
                         option.value = city.city_id;
                         option.textContent = city.location;
+                        if (selectedCityId && city.city_id == selectedCityId) {
+                            option.selected = true;
+                            @if(isset($user) && $user->location_id)
+                            const selectedDistrictId = '{{ $user->location_id }}';
+                            loadDistricts(selectedCityId, selectedDistrictId);
+                            @else
+                            loadDistricts(selectedCityId);
+                            @endif
+                        }
                         citySelect.appendChild(option);
                     });
-                    
-                    // Edit modunda seçili değerleri yükle
-                    @if(isset($user) && $user->location)
-                        // Kullanıcının location_id'sinden city_id'yi bul
-                        const userLocationId = '{{ $user->location_id }}';
-                        const userCityId = '{{ $user->location ? $user->location->city_id : "" }}';
-                        
-                        if (userCityId) {
-                            citySelect.value = userCityId;
-                            loadDistricts(userCityId);
-                        }
-                    @endif
                 }
             })
             .catch(error => console.error('Error:', error));
     }
     
     // load districts
-    function loadDistricts(cityId) {
+    function loadDistricts(cityId, selectedDistrictId = null) {
         fetch(`/admin/districts?city_id=${cityId}`)
             .then(response => response.json())
             .then(data => {
@@ -233,15 +306,11 @@ document.addEventListener('DOMContentLoaded', function() {
                         const option = document.createElement('option');
                         option.value = district.id;
                         option.textContent = district.location;
+                        if (selectedDistrictId && district.id == selectedDistrictId) {
+                            option.selected = true;
+                        }
                         districtSelect.appendChild(option);
                     });
-                    
-                    // Edit modunda seçili ilçeyi yükle
-                    @if(isset($user) && $user->location_id)
-                        setTimeout(() => {
-                            districtSelect.value = '{{ $user->location_id }}';
-                        }, 100);
-                    @endif
                 }
             })
             .catch(error => console.error('Error:', error));

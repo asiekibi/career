@@ -16,6 +16,7 @@ class UserSeeder extends Seeder
     {
         // Admin kullanıcısı
         User::create([
+            'register_number' => $this->generateUniqueRegisterNumber(),
             'name' => 'Admin',
             'surname' => 'User',
             'email' => 'admin@kariyer.com',
@@ -35,6 +36,7 @@ class UserSeeder extends Seeder
 
         // Test kullanıcısı
         User::create([
+            'register_number' => $this->generateUniqueRegisterNumber(),
             'name' => 'Test',
             'surname' => 'User',
             'email' => 'test@kariyer.com',
@@ -54,6 +56,7 @@ class UserSeeder extends Seeder
 
         // Demo kullanıcısı
         User::create([
+            'register_number' => $this->generateUniqueRegisterNumber(),
             'name' => 'Demo',
             'surname' => 'Kullanıcı',
             'email' => 'demo@kariyer.com',
@@ -73,6 +76,7 @@ class UserSeeder extends Seeder
 
         // Geliştirici kullanıcısı
         User::create([
+            'register_number' => $this->generateUniqueRegisterNumber(),
             'name' => 'Developer',
             'surname' => 'Dev',
             'email' => 'dev@kariyer.com',
@@ -92,6 +96,7 @@ class UserSeeder extends Seeder
 
         // Yönetici kullanıcısı
         User::create([
+            'register_number' => $this->generateUniqueRegisterNumber(),
             'name' => 'Manager',
             'surname' => 'Manager',
             'email' => 'manager@kariyer.com',
@@ -264,6 +269,7 @@ class UserSeeder extends Seeder
                 'role' => 'user',
                 'birth_date' => $student['birth_date'],
                 'gsm' => $student['gsm'],
+                'register_number' => $this->generateUniqueRegisterNumber(),
                 'point' => $student['point'],
                 'location_id' => $student['location_id'],
                 'district_id' => $student['district_id'],
@@ -272,5 +278,21 @@ class UserSeeder extends Seeder
                 'is_active' => $student['is_active'],
             ]);
         }
+    }
+
+    /**
+     * Veritabanında olmayan benzersiz register numarası oluştur
+     */
+    private function generateUniqueRegisterNumber(): string
+    {
+        do {
+            // 8 haneli rastgele numara oluştur
+            $registerNumber = str_pad(rand(10000000, 99999999), 8, '0', STR_PAD_LEFT);
+            
+            // Veritabanında bu numara var mı kontrol et
+            $exists = User::where('register_number', $registerNumber)->exists();
+        } while ($exists); // Varsa yeni numara oluştur
+        
+        return $registerNumber;
     }
 }

@@ -8,14 +8,14 @@ use App\Models\User;
 use Illuminate\View\View;
 use App\Models\PartnerCompany;
 
-class PortalController extends Controller
+class PortalStudentController extends Controller
 {
     /**
      * Open Portal login
      */
     public function showPortalLogin(): View
     {
-        return view('portal.portal-login');
+        return view('portal-user.portal-login');
     }
 
     /**
@@ -24,19 +24,31 @@ class PortalController extends Controller
     public function searchCertificate(Request $request)
     {
         $request->validate([
+            'full_name' => 'required|string|max:255',
             'certificate_code' => 'required|string|max:255',
             'tax_number' => 'nullable|string|max:50'
         ]);
 
-        // search by certificate code
+        // Ad soyadı ayır
+        $nameParts = explode(' ', trim($request->full_name), 2);
+        $firstName = $nameParts[0];
+        $lastName = isset($nameParts[1]) ? $nameParts[1] : '';
+
+        // search by certificate code and user name
         $userCertificate = UserCertificate::where('certificate_code', $request->certificate_code)
+            ->whereHas('user', function($query) use ($firstName, $lastName) {
+                $query->where('name', 'LIKE', $firstName . '%');
+                if ($lastName) {
+                    $query->where('surname', 'LIKE', $lastName . '%');
+                }
+            })
             ->with(['user.cvs.experiences', 'user.cvs.educations', 'user.cvs.abilities', 'user.cvs.languages', 'user.userBadges.badge', 'user.userCertificates.certificate'])
             ->first();
 
         if (!$userCertificate) {
             return response()->json([
                 'success' => false,
-                'message' => 'Sertifika kaydına ulaşılamamıştır.'
+                'message' => 'Sertifika kaydına ulaşılamamıştır. Lütfen ad soyad ve sertifika numarasını kontrol edin.'
             ]);
         }
 
@@ -100,7 +112,7 @@ class PortalController extends Controller
         $companyName = session('company_name');
         $isCompanyAuth = session('is_company_auth', false);
 
-        return view('portal.user-cv', compact('student', 'loginType', 'companyName', 'isCompanyAuth'));
+        return view('portal-user.user-cv', compact('student', 'loginType', 'companyName', 'isCompanyAuth'));
     }
 
     /**
@@ -114,7 +126,7 @@ class PortalController extends Controller
             ->sortByDesc('point')
             ->values(); // Collection'ı yeniden indeksle
         
-        return view('portal.carier-sequence', compact('students'));
+        return view('portal-user.carier-sequence', compact('students'));
     }
 
     /**
@@ -122,7 +134,7 @@ class PortalController extends Controller
      */
     public function partnerCompany(): View
     {
-        return view('portal.partner-company');
+        return view('portal-user.partner-company');
     }
 
     /**
@@ -164,7 +176,6 @@ class PortalController extends Controller
                 'message' => 'Bu vergi numarası ile daha önce başvuru yapılmış.'
             ], 422);
         } catch (\Exception $e) {
-            \Log::error('Partner company store error: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
                 'message' => 'Bir hata oluştu: ' . $e->getMessage()
@@ -172,3 +183,4 @@ class PortalController extends Controller
         }
     }
 }
+

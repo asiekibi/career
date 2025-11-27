@@ -138,4 +138,14 @@ class CertificateController extends Controller
         return redirect()->back()->with('success', 'Sertifika başarıyla kaldırıldı!');
     }
 
+    /**
+     * download certificate
+     */
+    public function downloadCertificate($id)
+    {
+        $userCertificate = UserCertificate::with(['user', 'certificate'])->findOrFail($id);
+        
+        return view('admin.certificate-download', compact('userCertificate'));
+    }
+
 }

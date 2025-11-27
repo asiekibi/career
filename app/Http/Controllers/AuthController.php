@@ -100,7 +100,6 @@ class AuthController extends Controller
                 
                 return back()->with('status', 'Şifre sıfırlama bağlantısı email adresinize gönderildi.');
             } catch (\Exception $e) {
-                \Log::error('Password reset email failed: ' . $e->getMessage());
                 return back()->withErrors(['email' => 'Email gönderilemedi. Lütfen tekrar deneyin.']);
             }
         }

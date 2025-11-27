@@ -104,6 +104,14 @@
                 </span>
                 Partner Firmalar
             </a>
+            
+            <!-- Instructor Card Requests menu -->
+            <a class="flex items-center gap-3 px-4 py-2 rounded-lg {{ request()->routeIs('admin.instructor-card-requests') ? 'bg-primary/10 text-primary font-medium' : 'text-gray-600 dark:text-gray-300 hover:bg-primary/10 dark:hover:bg-primary/20 hover:text-primary dark:hover:text-primary transition-colors' }}" href="{{ route('admin.instructor-card-requests') }}">
+                <span class="material-symbols-outlined">
+                    badge
+                </span>
+                Eğitmen Kimlik Kartı Talepleri
+            </a>
         </nav>
 
         <!-- Mobile logout button - Only visible on mobile -->
@@ -135,6 +143,8 @@
                     Rozetler
                 @elseif(request()->routeIs('admin.partner-companies'))
                     Partner Firmalar
+                @elseif(request()->routeIs('admin.instructor-card-requests'))
+                    Eğitmen Kimlik Kartı Talepleri
                 @else
                     Admin Panel
                 @endif

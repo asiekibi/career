@@ -1,4 +1,4 @@
-@include('portal.partials.header')
+@include('portal-user.partials.header')
 
 <!-- main content -->
 <main class="flex-1 p-4 lg:p-8">
@@ -91,7 +91,7 @@
     </div>
 </main>
 
-@include('portal.partials.footer')
+@include('portal-user.partials.footer')
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -191,3 +191,4 @@ document.addEventListener('DOMContentLoaded', function() {
     animation: fade-in 0.3s ease-out;
 }
 </style>
+

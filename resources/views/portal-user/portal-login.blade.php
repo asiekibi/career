@@ -4,13 +4,13 @@
     <meta charset="utf-8"/>
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
     <title>Sertifika Doğrulama</title>
-    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <link href="https://fonts.googleapis.com" rel="preconnect"/>
     <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&amp;display=swap" rel="stylesheet"/>
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <script>
-        tailwind.config = {
+        // Tailwind config'i önce tanımla
+        window.tailwindConfig = {
             darkMode: "class",
             theme: {
                 extend: {
@@ -30,11 +30,31 @@
                     },
                 },
             },
+        };
+    </script>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script>
+        // Tailwind yüklendikten sonra config'i uygula
+        if (typeof tailwind !== 'undefined' && window.tailwindConfig) {
+            tailwind.config = window.tailwindConfig;
         }
     </script>
     <style>
         body {
             font-family: 'Inter', sans-serif;
+        }
+        /* Fallback stiller */
+        .bg-background-light {
+            background-color: #f6f8f6;
+        }
+        .bg-background-dark {
+            background-color: #102210;
+        }
+        .text-primary {
+            color: #11d411;
+        }
+        .bg-primary {
+            background-color: #11d411;
         }
     </style>
 </head>
@@ -69,10 +89,10 @@
                 <form id="certificateForm" class="space-y-6">
                     <div class="space-y-4">
                         <div class="relative">
-                            <input id="certificateCode" class="w-full h-14 pl-4 pr-12 bg-background-light dark:bg-background-dark border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-primary focus:border-primary" placeholder="Sertifika Kodunu Girin" type="text" required/>
+                            <input id="fullName" class="w-full h-14 pl-4 pr-12 bg-background-light dark:bg-background-dark border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-primary focus:border-primary" placeholder="Ad Soyad" type="text" required/>
                         </div>
                         <div class="relative">
-                            <input id="taxNumber" class="w-full h-14 pl-4 pr-12 bg-background-light dark:bg-background-dark border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-primary focus:border-primary" placeholder="Firma Vergi Numarası (İsteğe Bağlı)" type="text"/>
+                            <input id="certificateCode" class="w-full h-14 pl-4 pr-12 bg-background-light dark:bg-background-dark border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-primary focus:border-primary" placeholder="Sertifika Numarası" type="text" required/>
                         </div>
                     </div>
                     <button type="submit" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-bold text-black bg-primary hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors">
@@ -125,12 +145,12 @@
         document.getElementById('certificateForm').addEventListener('submit', function(e) {
             e.preventDefault();
             
-            const certificateCode = document.getElementById('certificateCode').value;
-            const taxNumber = document.getElementById('taxNumber').value;
+            const fullName = document.getElementById('fullName').value.trim();
+            const certificateCode = document.getElementById('certificateCode').value.trim();
             const errorMessage = document.getElementById('errorMessage');
             const successResult = document.getElementById('successResult');
             
-            console.log('Form submitted with:', { certificateCode, taxNumber }); // Debug için
+            console.log('Form submitted with:', { fullName, certificateCode }); // Debug için
             
             // Loading göster
             const submitBtn = this.querySelector('button[type="submit"]');
@@ -149,8 +169,9 @@
                     'Accept': 'application/json'
                 },
                 body: JSON.stringify({
+                    full_name: fullName,
                     certificate_code: certificateCode,
-                    tax_number: taxNumber || null
+                    tax_number: null
                 })
             })
             .then(response => {
@@ -164,18 +185,13 @@
                     document.getElementById('studentName').textContent = data.student.name + ' ' + data.student.surname;
                     document.getElementById('studentPhoto').src = data.student.profile_photo_url || 'https://via.placeholder.com/96';
                     document.getElementById('viewCvBtn').onclick = function() {
-                        window.location.href = '{{ url("portal/student-cv") }}/' + data.student.id;
+                        window.location.href = '{{ url("student-portal/student-cv") }}/' + data.student.id;
                     };
                     
                     errorMessage.classList.add('hidden');
                     successResult.classList.remove('hidden');
                     
-                    // Otomatik yönlendirme kaldırıldı - kullanıcı butona tıklayana kadar bekle
-                    // setTimeout(() => {
-                    //     window.location.href = '{{ url("portal/student-cv") }}/' + data.student.id;
-                    // }, 2000);
                 } else {
-                    // error message show
                     successResult.classList.add('hidden');
                     errorMessage.classList.remove('hidden');
                 }

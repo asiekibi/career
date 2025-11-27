@@ -1,4 +1,4 @@
-@include('portal.partials.header')
+@include('portal-company.partials.header')
 
 <!-- main content -->
 <main class="flex-1 p-4 lg:p-8">
@@ -292,4 +292,4 @@
     </div>
 </main>
 
-@include('portal.partials.footer')
+@include('portal-company.partials.footer')

@@ -3,11 +3,46 @@
 namespace App\Http\Controllers;
 
 use App\Models\Location;
+use App\Models\Country;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 
 class LocationController extends Controller
 {
+    /**
+     * get countries
+     */
+    public function getCountries(): JsonResponse
+    {
+        $countries = Country::orderBy('name')
+            ->get(['id', 'code', 'name']);
+
+        return response()->json([
+            'success' => true,
+            'data' => $countries
+        ]);
+    }
+
+    /**
+     * get cities by country
+     */
+    public function getCitiesByCountry(Request $request): JsonResponse
+    {
+        $request->validate([
+            'country_id' => 'required|integer'
+        ]);
+
+        $cities = Location::where('parent_id', 0)
+            ->where('country_id', $request->country_id)
+            ->orderBy('location')
+            ->get(['id', 'location', 'city_id']);
+
+        return response()->json([
+            'success' => true,
+            'data' => $cities
+        ]);
+    }
+
     /**
      * get cities
      */

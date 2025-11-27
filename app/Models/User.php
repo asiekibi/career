@@ -30,9 +30,11 @@ class User extends Authenticatable
         'role',
         'birth_date',
         'gsm',
+        'register_number',
         'point',
         'location_id',
-        'district_id', // Yeni eklenen alan
+        'district_id',
+        'country_id',
         'contact_info',
         'profile_photo_url',
         'is_active',
@@ -68,6 +70,14 @@ class User extends Authenticatable
     public function location()
     {
         return $this->belongsTo(Location::class);
+    }
+
+    /**
+     * Get the country that the user belongs to.
+     */
+    public function country()
+    {
+        return $this->belongsTo(Country::class);
     }
 
     /**

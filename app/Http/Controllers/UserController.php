@@ -46,6 +46,7 @@ class UserController extends Controller
     public function studentList(): View
     {
         $students = User::where('role', 'user')
+            ->whereNull('deleted_at') // Soft deleted kayıtları hariç tut
             ->orderBy('name', 'asc')
             ->get();
         
@@ -114,8 +115,9 @@ class UserController extends Controller
             'email' => 'required|email|unique:users,email,' . $id,
             'gsm' => 'required|string|max:20',
             'birth_date' => 'required|date',
-            'city_id' => 'nullable|string', // required yerine nullable
-            'district_id' => 'nullable|string', // required yerine nullable
+            'country_id' => 'nullable|integer|exists:countries,id',
+            'city_id' => 'nullable|string',
+            'district_id' => 'nullable|string',
             'contact_info' => 'required|boolean',
         ], [
             'full_name.required' => 'Ad Soyad gereklidir.',
@@ -124,6 +126,7 @@ class UserController extends Controller
             'email.unique' => 'Bu email adresi zaten kullanılıyor.',
             'gsm.required' => 'GSM gereklidir.',
             'birth_date.required' => 'Doğum tarihi gereklidir.',
+            'country_id.exists' => 'Seçilen ülke geçersiz.',
             'contact_info.required' => 'İletişim izni seçimi gereklidir.',
         ]);
 
@@ -140,6 +143,11 @@ class UserController extends Controller
             'birth_date' => $request->birth_date,
             'contact_info' => $request->contact_info,
         ];
+        
+        // country_id'yi ekle
+        if ($request->country_id) {
+            $updateData['country_id'] = $request->country_id;
+        }
         
         // Sadece district_id varsa location_id ve district_id'yi güncelle
         if ($request->district_id) {
@@ -163,6 +171,7 @@ class UserController extends Controller
             'email' => 'required|email|unique:users,email',
             'gsm' => 'required|string|max:20',
             'birth_date' => 'required|date',
+            'country_id' => 'required|integer|exists:countries,id',
             'city_id' => 'required|string',
             'district_id' => 'required|string',
             'contact_info' => 'required|boolean',
@@ -173,6 +182,8 @@ class UserController extends Controller
             'email.unique' => 'Bu kullanıcı zaten kayıtlı. Lütfen farklı bir email adresi kullanın.',
             'gsm.required' => 'GSM gereklidir.',
             'birth_date.required' => 'Doğum tarihi gereklidir.',
+            'country_id.required' => 'Ülke seçimi gereklidir.',
+            'country_id.exists' => 'Seçilen ülke geçersiz.',
             'city_id.required' => 'İl seçimi gereklidir.',
             'district_id.required' => 'İlçe seçimi gereklidir.',
             'contact_info.required' => 'İletişim izni seçimi gereklidir.',
@@ -186,6 +197,9 @@ class UserController extends Controller
         // Güvenli rastgele şifre oluştur
         $temporaryPassword = \Illuminate\Support\Str::random(12);
     
+        // Rastgele register numarası oluştur (veritabanında olmayan)
+        $registerNumber = $this->generateUniqueRegisterNumber();
+    
         // Kullanıcı oluştur
         $user = User::create([
             'name' => $name,
@@ -195,7 +209,9 @@ class UserController extends Controller
             'gender' => 'other',
             'birth_date' => $request->birth_date,
             'gsm' => $request->gsm,
+            'register_number' => $registerNumber,
             'point' => '0',
+            'country_id' => $request->country_id,
             'location_id' => $request->district_id,
             'district_id' => $request->district_id,
             'contact_info' => $request->contact_info,
@@ -210,12 +226,16 @@ class UserController extends Controller
             
             return redirect()->route('admin.dashboard')->with('success', 'Öğrenci başarıyla eklendi! Şifre email ile gönderildi.');
         } catch (\Exception $e) {
-            // Email gönderilemezse kullanıcıyı sil
-            $user->delete();
+            // Hata detaylarını logla
+            \Log::error('Yeni kullanıcı email gönderim hatası', [
+                'user_id' => $user->id,
+                'email' => $user->email,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
             
-            return redirect()->back()
-                ->withInput()
-                ->with('error', 'Kullanıcı oluşturuldu ancak email gönderilemedi: ' . $e->getMessage());
+            return redirect()->route('admin.dashboard')
+                ->with('warning', 'Öğrenci başarıyla eklendi ancak şifre email ile gönderilemedi. Hata: ' . $e->getMessage() . ' Lütfen manuel olarak şifreyi paylaşın: ' . $temporaryPassword);
         }
     }
 
@@ -549,7 +569,6 @@ class UserController extends Controller
                 'message' => 'Deneyim başarıyla silindi.'
             ]);
         } catch (\Exception $e) {
-            \Log::error('Experience delete error: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
                 'message' => 'Deneyim silinirken hata oluştu: ' . $e->getMessage()
@@ -581,7 +600,6 @@ class UserController extends Controller
                 'message' => 'Eğitim başarıyla silindi.'
             ]);
         } catch (\Exception $e) {
-            \Log::error('Education delete error: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
                 'message' => 'Eğitim silinirken hata oluştu: ' . $e->getMessage()
@@ -613,7 +631,6 @@ class UserController extends Controller
                 'message' => 'Yetenek başarıyla silindi.'
             ]);
         } catch (\Exception $e) {
-            \Log::error('Ability delete error: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
                 'message' => 'Yetenek silinirken hata oluştu: ' . $e->getMessage()
@@ -645,7 +662,6 @@ class UserController extends Controller
                 'message' => 'Dil başarıyla silindi.'
             ]);
         } catch (\Exception $e) {
-            \Log::error('Language delete error: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
                 'message' => 'Dil silinirken hata oluştu: ' . $e->getMessage()
@@ -706,5 +722,21 @@ class UserController extends Controller
                 'message' => 'Hata: ' . $e->getMessage()
             ], 500);
         }
+    }
+
+    /**
+     * Veritabanında olmayan benzersiz register numarası oluştur
+     */
+    private function generateUniqueRegisterNumber(): string
+    {
+        do {
+            // 8 haneli rastgele numara oluştur
+            $registerNumber = str_pad(rand(10000000, 99999999), 8, '0', STR_PAD_LEFT);
+            
+            // Veritabanında bu numara var mı kontrol et
+            $exists = User::where('register_number', $registerNumber)->exists();
+        } while ($exists); // Varsa yeni numara oluştur
+        
+        return $registerNumber;
     }
 }

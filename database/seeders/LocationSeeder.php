@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Location;
+use App\Models\Country;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\File;
 
@@ -13,6 +14,15 @@ class LocationSeeder extends Seeder
      */
     public function run(): void
     {
+        // Türkiye'nin ID'sini bul
+        $turkey = Country::where('code', 'TR')->first();
+        
+        if (!$turkey) {
+            throw new \Exception('Türkiye ülkesi bulunamadı. Önce CountrySeeder çalıştırılmalı.');
+        }
+
+        $turkeyId = $turkey->id;
+
         // JSON dosyasını oku
         $jsonPath = public_path('tr.json');
         $jsonData = File::get($jsonPath);
@@ -23,7 +33,8 @@ class LocationSeeder extends Seeder
             $cityRecord = Location::create([
                 'parent_id' => 0,
                 'location' => $city['text'],
-                'city_id' => $city['value']
+                'city_id' => $city['value'],
+                'country_id' => $turkeyId
             ]);
 
             // İlçeleri ekle (parent_id = 1, city_id = ilin value'si)
@@ -32,7 +43,8 @@ class LocationSeeder extends Seeder
                     Location::create([
                         'parent_id' => 1, // Sabit 1 değeri
                         'location' => $district['text'],
-                        'city_id' => $city['value'] // İlin JSON'daki value'si
+                        'city_id' => $city['value'], // İlin JSON'daki value'si
+                        'country_id' => $turkeyId
                     ]);
                 }
             }

@@ -19,6 +19,7 @@ class Location extends Model
         'parent_id',
         'location',
         'city_id',
+        'country_id',
     ];
 
     /**
@@ -47,5 +48,13 @@ class Location extends Model
     public function children()
     {
         return $this->hasMany(Location::class, 'parent_id');
+    }
+
+    /**
+     * Get the country that the location belongs to.
+     */
+    public function country()
+    {
+        return $this->belongsTo(Country::class);
     }
 }

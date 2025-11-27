@@ -22,9 +22,11 @@ return new class extends Migration
             $table->enum('role', ['admin', 'user'])->default('user');
             $table->date('birth_date');
             $table->string('gsm');
+            $table->string('register_number')->unique()->nullable();
             $table->string('point');
             $table->string('location_id');
             $table->string('district_id');
+            $table->unsignedBigInteger('country_id')->nullable();
             $table->boolean('contact_info')->default(true);
             $table->text('profile_photo_url')->nullable();
             $table->boolean('is_active')->default(true);
