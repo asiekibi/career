@@ -16,6 +16,8 @@ class Certificate extends Model
      */
     protected $fillable = [
         'certificate_name',
+        'type',
+        'template_path',
     ];
 
     /**

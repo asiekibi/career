@@ -15,14 +15,6 @@
                        class="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary dark:bg-gray-800 dark:text-white">
                 <span class="material-symbols-outlined absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm">search</span>
             </div>
-            <!-- Download button -->
-            <a href="{{ route('admin.download.pirus-app') }}" class="flex items-center justify-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors">
-                <span class="material-symbols-outlined">
-                    download
-                </span>
-                <span class="hidden sm:inline">İndir</span>
-                <span class="sm:hidden">İndir</span>
-            </a>
             <!-- student add button -->
             <a href="{{ route('admin.students.create') }}" class="flex items-center justify-center gap-2 px-4 py-2 bg-primary text-white rounded-lg font-medium hover:bg-primary/90 transition-colors">
                 <span class="material-symbols-outlined">
@@ -46,7 +38,7 @@
                             <th class="px-6 py-3" scope="col">Email</th>
                             <th class="px-6 py-3" scope="col">İletişim İzni</th>
                             <th class="px-6 py-3" scope="col">Puan</th>
-                            <th class="px-6 py-3" scope="col"><span class="sr-only">İşlemler</span></th>
+                            <th class="px-6 py-3 text-center" scope="col">İşlemler</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -80,34 +72,19 @@
                                         <span class="font-semibold text-lg">{{ $student->point ?? 0 }}</span>
                                     </div>
                                 </td>
-                                <td class="px-6 py-4 text-right">
-                                    <div class="relative">
-                                        <button id="action-btn-{{ $student->id }}" class="text-gray-500 dark:text-gray-400 hover:text-primary dark:hover:text-primary">
-                                            <span class="material-symbols-outlined">
-                                                more_vert
-                                            </span>
+                                <td class="px-6 py-4 text-center">
+                                    <div class="flex items-center justify-center gap-2">
+                                        <a href="{{ route('admin.students.edit', $student->id) }}" 
+                                           class="p-2 text-gray-500 dark:text-gray-400 hover:text-primary dark:hover:text-primary hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors" 
+                                           title="Düzenle">
+                                            <span class="material-symbols-outlined text-lg">edit</span>
+                                        </a>
+                                        <button onclick="confirmDelete({{ $student->id }})" 
+                                                class="p-2 text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors" 
+                                                title="Sil">
+                                            <span class="material-symbols-outlined text-lg">delete</span>
                                         </button>
-                                        
-                                        <!-- Dropdown Menu -->
-                                        <div id="dropdown-{{ $student->id }}" class="hidden absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg z-10 border border-gray-200 dark:border-gray-700">
-                                            <div class="py-1">
-                                                <a href="{{ route('admin.students.edit', $student->id) }}" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
-                                                    <span class="material-symbols-outlined text-sm">edit</span>
-                                                    Düzenle
-                                                </a>
-                                                <button onclick="confirmDelete({{ $student->id }})" class="flex items-center gap-2 w-full px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20">
-                                                    <span class="material-symbols-outlined text-sm">delete</span>
-                                                    Sil
-                                                </button>
-                                            </div>
-                                        </div>
                                     </div>
-                                    
-                                    <!-- Delete Form (Hidden) -->
-                                    <form id="delete-form-{{ $student->id }}" action="{{ route('admin.students.destroy', $student->id) }}" method="POST" style="display: none;">
-                                        @csrf
-                                        <input type="hidden" name="student_id" value="{{ $student->id }}">
-                                    </form>
                                 </td>
                             </tr>
                         @empty
@@ -142,27 +119,18 @@
                             </div>
                         </div>
                         
-                        <!-- Action Button -->
-                        <div class="relative">
-                            <button id="mobile-action-btn-{{ $student->id }}" class="text-gray-500 dark:text-gray-400 hover:text-primary dark:hover:text-primary">
-                                <span class="material-symbols-outlined">
-                                    more_vert
-                                </span>
+                        <!-- Action Buttons -->
+                        <div class="flex items-center gap-2">
+                            <a href="{{ route('admin.students.edit', $student->id) }}" 
+                               class="p-2 text-gray-500 dark:text-gray-400 hover:text-primary dark:hover:text-primary hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors" 
+                               title="Düzenle">
+                                <span class="material-symbols-outlined text-lg">edit</span>
+                            </a>
+                            <button onclick="confirmDelete({{ $student->id }})" 
+                                    class="p-2 text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors" 
+                                    title="Sil">
+                                <span class="material-symbols-outlined text-lg">delete</span>
                             </button>
-                            
-                            <!-- Mobile Dropdown Menu -->
-                            <div id="mobile-dropdown-{{ $student->id }}" class="hidden absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg z-10 border border-gray-200 dark:border-gray-700">
-                                <div class="py-1">
-                                    <a href="{{ route('admin.students.edit', $student->id) }}" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
-                                        <span class="material-symbols-outlined text-sm">edit</span>
-                                        Düzenle
-                                    </a>
-                                    <button onclick="confirmDelete({{ $student->id }})" class="flex items-center gap-2 w-full px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20">
-                                        <span class="material-symbols-outlined text-sm">delete</span>
-                                        Sil
-                                    </button>
-                                </div>
-                            </div>
                         </div>
                     </div>
                     
@@ -220,46 +188,6 @@
             });
         });
         
-        // Event delegation for dropdown toggle (Desktop)
-        document.addEventListener('click', function(event) {
-            if (event.target.closest('[id^="action-btn-"]')) {
-                const button = event.target.closest('[id^="action-btn-"]');
-                const studentId = button.id.replace('action-btn-', '');
-                
-                // Close all desktop dropdowns
-                document.querySelectorAll('[id^="dropdown-"]').forEach(dropdown => {
-                    dropdown.classList.add('hidden');
-                });
-                
-                // Toggle current dropdown
-                const dropdown = document.getElementById(`dropdown-${studentId}`);
-                if (dropdown) {
-                    dropdown.classList.remove('hidden');
-                }
-            } else if (event.target.closest('[id^="mobile-action-btn-"]')) {
-                const button = event.target.closest('[id^="mobile-action-btn-"]');
-                const studentId = button.id.replace('mobile-action-btn-', '');
-                
-                // Close all mobile dropdowns
-                document.querySelectorAll('[id^="mobile-dropdown-"]').forEach(dropdown => {
-                    dropdown.classList.add('hidden');
-                });
-                
-                // Toggle current dropdown
-                const dropdown = document.getElementById(`mobile-dropdown-${studentId}`);
-                if (dropdown) {
-                    dropdown.classList.remove('hidden');
-                }
-            } else if (!event.target.closest('[id^="dropdown-"]') && !event.target.closest('[id^="mobile-dropdown-"]')) {
-                // Close all dropdowns if clicking outside
-                document.querySelectorAll('[id^="dropdown-"]').forEach(dropdown => {
-                    dropdown.classList.add('hidden');
-                });
-                document.querySelectorAll('[id^="mobile-dropdown-"]').forEach(dropdown => {
-                    dropdown.classList.add('hidden');
-                });
-            }
-        });
         
         // Delete confirmation function
         window.confirmDelete = function(studentId) {

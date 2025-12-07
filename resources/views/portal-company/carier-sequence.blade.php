@@ -77,7 +77,7 @@
                                     {{ $student->point ?? 0 }}
                                 </td>
                                 <td class="px-6 py-4">
-                                    <a href="{{ route('portal.student.cv', $student->id) }}" class="bg-primary/10 text-primary px-4 py-2 rounded-lg font-semibold text-sm hover:bg-primary/20 transition-colors">
+                                    <a href="{{ route('company-portal.student.cv', $student->id) }}" class="bg-primary/10 text-primary px-4 py-2 rounded-lg font-semibold text-sm hover:bg-primary/20 transition-colors">
                                         Cv Göster
                                     </a>
                                 </td>
@@ -111,7 +111,7 @@
                         </div>
                         
                         <!-- CV Göster Butonu -->
-                        <a href="{{ route('portal.student.cv', $student->id) }}" class="bg-primary/10 text-primary px-3 py-2 rounded-lg font-semibold text-sm hover:bg-primary/20 transition-colors">
+                        <a href="{{ route('company-portal.student.cv', $student->id) }}" class="bg-primary/10 text-primary px-3 py-2 rounded-lg font-semibold text-sm hover:bg-primary/20 transition-colors">
                             CV Göster
                         </a>
                     </div>

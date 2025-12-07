@@ -11,13 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('certificates', function (Blueprint $table) {
+        Schema::create('instructor_card_certificates', function (Blueprint $table) {
             $table->id();
-            $table->string('certificate_name');
-            $table->enum('type', ['ders', 'kurs'])->default('ders');
-            $table->string('register_no')->nullable();
-            $table->text('content')->nullable();
-            $table->string('template_path')->nullable();
+            $table->foreignId('instructor_card_request_id')->constrained('instructor_card_requests')->onDelete('cascade');
+            $table->foreignId('user_certificate_id')->constrained('user_certificates')->onDelete('cascade');
             $table->timestamps();
         });
     }
@@ -27,7 +24,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('certificates');
+        Schema::dropIfExists('instructor_card_certificates');
     }
 };
 

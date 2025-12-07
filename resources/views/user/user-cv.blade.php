@@ -194,59 +194,99 @@
                         </div>
                     </div>
                 @endif
-            @endif
 
-            @if($student->userBadges->count() > 0)
-                <div class="mt-10">
-                    <h4 class="text-xl font-bold text-gray-900 dark:text-white mb-4">Kazanılan Rozetler</h4>
-                    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
-                        @foreach($student->userBadges as $userBadge)
-                            <div class="flex flex-col items-center p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800/50 text-center">
-                                @if($userBadge->badge && $userBadge->badge->badge_icon_url)
-                                    <img alt="{{ $userBadge->badge->badge_name }}" 
-                                         class="w-12 h-12 rounded-full object-cover" 
-                                         src="{{ asset($userBadge->badge->badge_icon_url) }}" 
-                                         title="{{ $userBadge->badge->badge_name }}"/>
-                                @else
-                                    <span class="material-symbols-outlined text-5xl text-yellow-500">military_tech</span>
-                                @endif
-                                <h5 class="mt-2 font-semibold text-gray-800 dark:text-gray-200 text-sm">{{ $userBadge->badge->badge_name }}</h5>
-                            </div>
-                        @endforeach
+                @if($student->userBadges->count() > 0)
+                    <div class="mt-10">
+                        <h4 class="text-xl font-bold text-gray-900 dark:text-white mb-4">Kazanılan Rozetler</h4>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+                            @foreach($student->userBadges as $userBadge)
+                                <div class="flex flex-col items-center p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800/50 text-center">
+                                    @if($userBadge->badge && $userBadge->badge->badge_icon_url)
+                                        <img alt="{{ $userBadge->badge->badge_name }}" 
+                                             class="w-12 h-12 rounded-full object-cover" 
+                                             src="{{ asset($userBadge->badge->badge_icon_url) }}" 
+                                             title="{{ $userBadge->badge->badge_name }}"/>
+                                    @else
+                                        <span class="material-symbols-outlined text-5xl text-yellow-500">military_tech</span>
+                                    @endif
+                                    <h5 class="mt-2 font-semibold text-gray-800 dark:text-gray-200 text-sm">{{ $userBadge->badge->badge_name }}</h5>
+                                </div>
+                            @endforeach
+                        </div>
                     </div>
-                </div>
-            @endif
+                @endif
 
-            @if($student->userCertificates->count() > 0)
-                <div class="mt-10">
-                    <h4 class="text-xl font-bold text-gray-900 dark:text-white mb-4">Sertifikalar</h4>
-                    <div class="overflow-x-auto">
-                        
-                        <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
-                            <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
-                                <tr>
-                                    <th class="px-6 py-3" scope="col">Sertifika Adı</th>
-                                    <th class="px-6 py-3" scope="col">Kodu</th>
-                                    <th class="px-6 py-3" scope="col">Derecesi</th>
-                                    <th class="px-6 py-3" scope="col">Kurum</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach($student->userCertificates as $userCertificate)
-                                    <tr class="bg-white border-b dark:bg-background-dark dark:border-gray-700">
-                                        <th class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white" scope="row">
-                                            {{ $userCertificate->certificate->certificate_name ?? 'Sertifika adı bulunamadı' }}
-                                        </th>
-                                        <td class="px-6 py-4">{{ $userCertificate->certificate_code ?? 'Belirtilmemiş' }}</td>
-                                        <td class="px-6 py-4">{{ $userCertificate->achievement_score ?? 'Belirtilmemiş' }}</td>
-                                        <td class="px-6 py-4">{{ $userCertificate->issuing_institution ?? 'Belirtilmemiş' }}</td>
+                @if($student->userCertificates->count() > 0)
+                    <div class="mt-10">
+                        <h4 class="text-xl font-bold text-gray-900 dark:text-white mb-4">Sertifikalar</h4>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+                                <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+                                    <tr>
+                                        <th class="px-6 py-3" scope="col">Sertifika Adı</th>
+                                        <th class="px-6 py-3" scope="col">Kodu</th>
+                                        <th class="px-6 py-3" scope="col">Derecesi</th>
+                                        <th class="px-6 py-3" scope="col">Kurum</th>
+                                        <th class="px-6 py-3" scope="col">İşlemler</th>
                                     </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody>
+                                    @foreach($student->userCertificates as $userCertificate)
+                                        @php
+                                            $certificate = $userCertificate->certificate;
+                                            $courses = $certificate ? $certificate->certificateEducations : collect();
+                                        @endphp
+                                        <tr class="bg-white border-b dark:bg-background-dark dark:border-gray-700">
+                                            <th class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white" scope="row">
+                                                {{ $userCertificate->certificate->certificate_name ?? 'Sertifika adı bulunamadı' }}
+                                            </th>
+                                            <td class="px-6 py-4">{{ $userCertificate->certificate_code ?? 'Belirtilmemiş' }}</td>
+                                            <td class="px-6 py-4">{{ $userCertificate->achievement_score ?? 'Belirtilmemiş' }}</td>
+                                            <td class="px-6 py-4">{{ $userCertificate->issuing_institution ?? 'Belirtilmemiş' }}</td>
+                                            <td class="px-6 py-4">
+                                                <a href="{{ route('certificate.download', $userCertificate->id) }}" 
+                                                   target="_blank"
+                                                   class="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-white bg-primary hover:bg-primary/90 rounded-lg transition-colors"
+                                                   title="Sertifikayı İndir">
+                                                    <span class="material-symbols-outlined text-lg">download</span>
+                                                    <span>İndir</span>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                        @if($courses->count() > 0)
+                                            @php
+                                                $totalScore = (int)($userCertificate->achievement_score ?? 0);
+                                                $courseCount = $courses->count();
+                                                $scorePerCourse = $courseCount > 0 ? (int)($totalScore / $courseCount) : 0;
+                                                $remainder = $courseCount > 0 ? $totalScore % $courseCount : 0;
+                                            @endphp
+                                            <tr class="bg-gray-50 dark:bg-gray-800/50">
+                                                <td colspan="5" class="px-6 py-4">
+                                                    <div class="ml-4">
+                                                        <h5 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Dersler:</h5>
+                                                        <div class="space-y-1">
+                                                            @foreach($courses as $index => $course)
+                                                                @php
+                                                                    $courseScore = $scorePerCourse + ($index === $courseCount - 1 ? $remainder : 0);
+                                                                @endphp
+                                                                <div class="flex justify-between items-center text-sm text-gray-600 dark:text-gray-400">
+                                                                    <span>{{ $course->course_name }}</span>
+                                                                    <span class="font-medium text-gray-900 dark:text-white">{{ $courseScore }} Puan</span>
+                                                                </div>
+                                                            @endforeach
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        @endif
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
-                </div>
+                @endif
             @endif
+
         </div>
     </div>
 </main>

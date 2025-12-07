@@ -10,7 +10,7 @@
                     <h2 class="text-xl lg:text-2xl font-bold text-gray-900 dark:text-white">Partner Firma Ol</h2>
                     <p class="mt-1 text-gray-600 dark:text-gray-400">Firmamızla işbirliği yaparak öğrencilerimize daha iyi fırsatlar sunun.</p>
                 </div>
-                <a href="{{ route('portal-login') }}" class="bg-gray-500 text-white px-4 py-2 rounded-lg font-semibold text-sm hover:bg-gray-600 transition-colors flex items-center gap-2">
+                <a href="{{ route('company-portal-login') }}" class="bg-gray-500 text-white px-4 py-2 rounded-lg font-semibold text-sm hover:bg-gray-600 transition-colors flex items-center gap-2">
                     <span class="material-symbols-outlined text-base">arrow_back</span>
                     Geri Dön
                 </a>
@@ -107,7 +107,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         const formData = new FormData(form);
         
-        fetch('{{ route("portal.partner-company.store") }}', {
+        fetch('{{ route("company-portal.partner-company.store") }}', {
             method: 'POST',
             body: formData,
             headers: {

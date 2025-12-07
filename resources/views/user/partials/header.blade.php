@@ -63,6 +63,14 @@
                         <span class="material-symbols-outlined">leaderboard</span>
                         <span class="text-sm font-medium">Kariyer Sıralaması</span>
                     </a>
+                    <a class="mt-2 flex items-center gap-3 px-4 py-2 rounded-lg {{ request()->routeIs('user.job-listings*') ? 'bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800' }}" href="{{ route('user.job-listings.index') }}">
+                        <span class="material-symbols-outlined">work</span>
+                        <span class="text-sm font-medium">İş İlanları</span>
+                    </a>
+                    <a class="mt-2 flex items-center gap-3 px-4 py-2 rounded-lg {{ request()->routeIs('user.instructor-card-request*') ? 'bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800' }}" href="{{ route('user.instructor-card-request.create') }}">
+                        <span class="material-symbols-outlined">badge</span>
+                        <span class="text-sm font-medium">Eğitmen Kimlik Kartı</span>
+                    </a>
                 </nav>
                 
                 <!-- Sol alt logout button -->

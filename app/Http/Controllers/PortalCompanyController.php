@@ -57,6 +57,30 @@ class PortalCompanyController extends Controller
     }
 
     /**
+     * Show main page - CV görüntüleme sayfası
+     */
+    public function showMain(): View
+    {
+        // Session'dan öğrenci ID'sini al
+        $studentId = session('student_id');
+        
+        if (!$studentId) {
+            return redirect()->route('company-portal-login');
+        }
+
+        $student = User::where('id', $studentId)
+            ->with(['cvs.experiences', 'cvs.educations', 'cvs.abilities', 'cvs.languages', 'userBadges.badge', 'userCertificates.certificate'])
+            ->firstOrFail();
+
+        // Giriş tipini session'dan al
+        $loginType = session('login_type', 'student');
+        $companyName = session('company_name');
+        $isCompanyAuth = session('is_company_auth', false);
+
+        return view('portal-company.main', compact('student', 'loginType', 'companyName', 'isCompanyAuth'));
+    }
+
+    /**
      * Show student cv
      */
     public function showStudentCv($userId): View

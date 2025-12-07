@@ -25,7 +25,7 @@
                         <th class="px-6 py-3" scope="col">Toplam Puan</th>
                         <th class="px-6 py-3" scope="col">Çalışma Durumu</th>
                         <th class="px-6 py-3" scope="col">Güncelleme Tarihi</th>
-                        <th class="px-6 py-3" scope="col"><span class="sr-only">İşlemler</span></th>
+                        <th class="px-6 py-3 text-center" scope="col">İşlemler</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -70,25 +70,18 @@
                                 @endif
                             </td>
                             <td class="px-6 py-4">{{ $user->updated_at->format('d.m.Y') }}</td>
-                            <td class="px-6 py-4 text-right">
-                                <div class="relative">
-                                    <button id="action-btn-{{ $user->id }}" class="text-gray-500 dark:text-gray-400 hover:text-primary dark:hover:text-primary" onclick="toggleDropdown({{ $user->id }})">
-                                        <span class="material-symbols-outlined">more_vert</span>
-                                    </button>
-                                    
-                                    <!-- Dropdown Menu -->
-                                    <div id="dropdown-{{ $user->id }}" class="hidden absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg z-10 border border-gray-200 dark:border-gray-700">
-                                        <div class="py-1">
-                                            <a href="{{ route('admin.students.assign-certificate', $user->id) }}" class="flex items-center gap-2 w-full px-4 py-2 text-sm text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20">
-                                                <span class="material-symbols-outlined text-sm">workspace_premium</span>
-                                                Sertifika Ata
-                                            </a>
-                                            <a href="{{ route('admin.students.assign-badge', $user->id) }}" class="flex items-center gap-2 w-full px-4 py-2 text-sm text-yellow-600 dark:text-yellow-400 hover:bg-yellow-50 dark:hover:bg-yellow-900/20">
-                                                <span class="material-symbols-outlined text-sm">military_tech</span>
-                                                Rozet Ata
-                                            </a>
-                                        </div>
-                                    </div>
+                            <td class="px-6 py-4 text-center">
+                                <div class="flex items-center justify-center gap-2">
+                                    <a href="{{ route('admin.students.assign-certificate', $user->id) }}" 
+                                       class="p-2 text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors" 
+                                       title="Sertifika Ata">
+                                        <span class="material-symbols-outlined text-lg">workspace_premium</span>
+                                    </a>
+                                    <a href="{{ route('admin.students.assign-badge', $user->id) }}" 
+                                       class="p-2 text-gray-500 dark:text-gray-400 hover:text-yellow-600 dark:hover:text-yellow-400 hover:bg-yellow-50 dark:hover:bg-yellow-900/20 rounded-lg transition-colors" 
+                                       title="Rozet Ata">
+                                        <span class="material-symbols-outlined text-lg">military_tech</span>
+                                    </a>
                                 </div>
                             </td>
                         </tr>
@@ -124,27 +117,18 @@
                         </div>
                     </div>
                     
-                    <!-- Action Button -->
-                    <div class="relative">
-                        <button id="mobile-action-btn-{{ $user->id }}" class="text-gray-500 dark:text-gray-400 hover:text-primary dark:hover:text-primary">
-                            <span class="material-symbols-outlined">
-                                more_vert
-                            </span>
-                        </button>
-                        
-                        <!-- Mobile Dropdown Menu -->
-                        <div id="mobile-dropdown-{{ $user->id }}" class="hidden absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg z-10 border border-gray-200 dark:border-gray-700">
-                            <div class="py-1">
-                                <a href="{{ route('admin.students.assign-certificate', $user->id) }}" class="flex items-center gap-2 px-4 py-2 text-sm text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20">
-                                    <span class="material-symbols-outlined text-sm">workspace_premium</span>
-                                    Sertifika Ata
-                                </a>
-                                <a href="{{ route('admin.students.assign-badge', $user->id) }}" class="flex items-center gap-2 px-4 py-2 text-sm text-yellow-600 dark:text-yellow-400 hover:bg-yellow-50 dark:hover:bg-yellow-900/20">
-                                    <span class="material-symbols-outlined text-sm">military_tech</span>
-                                    Rozet Ata
-                                </a>
-                            </div>
-                        </div>
+                    <!-- Action Buttons -->
+                    <div class="flex items-center gap-2">
+                        <a href="{{ route('admin.students.assign-certificate', $user->id) }}" 
+                           class="p-2 text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors" 
+                           title="Sertifika Ata">
+                            <span class="material-symbols-outlined text-lg">workspace_premium</span>
+                        </a>
+                        <a href="{{ route('admin.students.assign-badge', $user->id) }}" 
+                           class="p-2 text-gray-500 dark:text-gray-400 hover:text-yellow-600 dark:hover:text-yellow-400 hover:bg-yellow-50 dark:hover:bg-yellow-900/20 rounded-lg transition-colors" 
+                           title="Rozet Ata">
+                            <span class="material-symbols-outlined text-lg">military_tech</span>
+                        </a>
                     </div>
                 </div>
                 
@@ -212,79 +196,5 @@
             });
         });
         
-        // Desktop dropdown toggle function
-        window.toggleDropdown = function(userId) {
-            // Close all other desktop dropdowns
-            document.querySelectorAll('[id^="dropdown-"]').forEach(dropdown => {
-                if (dropdown.id !== `dropdown-${userId}`) {
-                    dropdown.classList.add('hidden');
-                }
-            });
-            
-            // Toggle current dropdown
-            const dropdown = document.getElementById(`dropdown-${userId}`);
-            if (dropdown) {
-                dropdown.classList.toggle('hidden');
-            }
-        }
-        
-        // Mobile dropdown toggle function
-        window.toggleMobileDropdown = function(userId) {
-            // Close all mobile dropdowns
-            document.querySelectorAll('[id^="mobile-dropdown-"]').forEach(dropdown => {
-                dropdown.classList.add('hidden');
-            });
-            
-            // Toggle current dropdown
-            const dropdown = document.getElementById(`mobile-dropdown-${userId}`);
-            if (dropdown) {
-                dropdown.classList.remove('hidden');
-            }
-        }
-        
-        // Event delegation for dropdown toggle
-        document.addEventListener('click', function(event) {
-            // Desktop dropdown toggle
-            if (event.target.closest('[id^="action-btn-"]')) {
-                const button = event.target.closest('[id^="action-btn-"]');
-                const userId = button.id.replace('action-btn-', '');
-                
-                // Close all desktop dropdowns
-                document.querySelectorAll('[id^="dropdown-"]').forEach(dropdown => {
-                    dropdown.classList.add('hidden');
-                });
-                
-                // Toggle current dropdown
-                const dropdown = document.getElementById(`dropdown-${userId}`);
-                if (dropdown) {
-                    dropdown.classList.remove('hidden');
-                }
-            } 
-            // Mobile dropdown toggle
-            else if (event.target.closest('[id^="mobile-action-btn-"]')) {
-                const button = event.target.closest('[id^="mobile-action-btn-"]');
-                const userId = button.id.replace('mobile-action-btn-', '');
-                
-                // Close all mobile dropdowns
-                document.querySelectorAll('[id^="mobile-dropdown-"]').forEach(dropdown => {
-                    dropdown.classList.add('hidden');
-                });
-                
-                // Toggle current dropdown
-                const dropdown = document.getElementById(`mobile-dropdown-${userId}`);
-                if (dropdown) {
-                    dropdown.classList.remove('hidden');
-                }
-            } 
-            // Close dropdowns when clicking outside
-            else if (!event.target.closest('[id^="dropdown-"]') && !event.target.closest('[id^="mobile-dropdown-"]')) {
-                document.querySelectorAll('[id^="dropdown-"]').forEach(dropdown => {
-                    dropdown.classList.add('hidden');
-                });
-                document.querySelectorAll('[id^="mobile-dropdown-"]').forEach(dropdown => {
-                    dropdown.classList.add('hidden');
-                });
-            }
-        });
     });
 </script>

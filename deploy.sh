@@ -33,3 +33,10 @@ echo ""
 echo "=== Kurulum Tamamlandı ==="
 echo "Şimdi projeyi /var/www/kariyer klasörüne yükleyin"
 
+
+
+
+
+
+
+

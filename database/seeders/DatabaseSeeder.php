@@ -16,6 +16,7 @@ class DatabaseSeeder extends Seeder
             LocationSeeder::class,
             UserSeeder::class,
             ExperienceSeeder::class, // Bu satırı ekleyin
+            JobListingSeeder::class,
         ]);
     }
 }

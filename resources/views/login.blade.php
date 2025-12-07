@@ -28,7 +28,6 @@
                         },
                     }
                 } else {
-                    // Tailwind henüz yüklenmediyse tekrar dene (Cloudflare CDN yavaş yüklenebilir)
                     setTimeout(configureTailwind, 100);
                 }
             }
@@ -58,7 +57,7 @@
                 </div>
                 
                 <!--login page body content form-->
-                <form action="{{ route('login') }}" class="mt-8 space-y-6" method="POST">
+                <form action="{{ route('login') }}" class="mt-8 space-y-6" method="POST" id="loginForm">
                     @csrf
 
                     <!--login page body content form inputs-->
@@ -147,5 +146,13 @@
                 eyeOffIcon.classList.add('hidden');
             }
         }
+
+        // Form submit loading state
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            const form = this;
+            const submitButton = form.querySelector('button[type="submit"]');
+            submitButton.disabled = true;
+            submitButton.textContent = 'Giriş yapılıyor...';
+        });
     </script>
 </html>

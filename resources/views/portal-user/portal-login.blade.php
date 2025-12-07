@@ -181,16 +181,10 @@
             .then(data => {
                 console.log('Response data:', data); // Debug için
                 if (data.success) {
-                    // success result show
-                    document.getElementById('studentName').textContent = data.student.name + ' ' + data.student.surname;
-                    document.getElementById('studentPhoto').src = data.student.profile_photo_url || 'https://via.placeholder.com/96';
-                    document.getElementById('viewCvBtn').onclick = function() {
-                        window.location.href = '{{ url("student-portal/student-cv") }}/' + data.student.id;
-                    };
-                    
-                    errorMessage.classList.add('hidden');
-                    successResult.classList.remove('hidden');
-                    
+                    // Başarılı giriş sonrası direkt portal-user CV sayfasına yönlendir
+                    if (data.student) {
+                        window.location.href = '{{ route("portal.student.cv", ["userId" => ":userId"]) }}'.replace(':userId', data.student.id);
+                    }
                 } else {
                     successResult.classList.add('hidden');
                     errorMessage.classList.remove('hidden');

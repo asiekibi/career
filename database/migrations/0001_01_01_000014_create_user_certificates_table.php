@@ -16,6 +16,8 @@ return new class extends Migration
             $table->foreignId('certificate_id')->constrained()->onDelete('cascade');
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->string('certificate_code');
+            $table->string('register_no')->nullable();
+            $table->text('content')->nullable();
             $table->integer('achievement_score');
             $table->string('issuing_institution');
             $table->date('acquisition_date');

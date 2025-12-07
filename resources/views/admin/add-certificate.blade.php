@@ -73,6 +73,34 @@
                     <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white" for="validity_period">Geçerlilik Süresi (Yıl)</label>
                     <input class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary dark:focus:border-primary" id="validity_period" name="validity_period" placeholder="örn: 2" type="number" min="1" max="10"/>
                 </div>
+                <div>
+                    <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white" for="register_no">
+                        <span class="inline-block mr-2">Register No:</span>
+                    </label>
+                    <input class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary dark:focus:border-primary" 
+                           id="register_no" 
+                           name="register_no"
+                           placeholder="Numara girin" 
+                           type="text"/>
+                </div>
+            </div>
+            <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white" for="content1">İçerik 1</label>
+                    <input class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary dark:focus:border-primary" 
+                        id="content1" 
+                        name="content1"
+                        placeholder="İçerik 1 yazın"
+                        type="text"/>
+                </div>
+                <div>
+                    <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white" for="content2">İçerik 2</label>
+                    <input class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary dark:focus:border-primary" 
+                        id="content2" 
+                        name="content2"
+                        placeholder="İçerik 2 yazın"
+                        type="text"/>
+                </div>
             </div>
             <div class="mt-6 flex justify-end">
                 <button class="text-white bg-primary hover:bg-primary/90 focus:ring-4 focus:outline-none focus:ring-primary/50 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary dark:hover:bg-primary/90 dark:focus:ring-primary/80" type="submit">Kaydet</button>
@@ -90,6 +118,9 @@
                         <tr>
                             <th class="px-6 py-3" scope="col">Sertifika Adı</th>
                             <th class="px-6 py-3" scope="col">Sertifika Kodu</th>
+                            <th class="px-6 py-3" scope="col">Register No</th>
+                            <th class="px-6 py-3" scope="col">İçerik 1</th>
+                            <th class="px-6 py-3" scope="col">İçerik 2</th>
                             <th class="px-6 py-3" scope="col">Veren Kurum</th>
                             <th class="px-6 py-3" scope="col">Veriliş Tarihi</th>
                             <th class="px-6 py-3" scope="col">Geçerlilik Sonu</th>
@@ -104,6 +135,9 @@
                                     {{ $userCertificate->certificate->certificate_name ?? 'Bilinmeyen Sertifika' }}
                                 </th>
                                 <td class="px-6 py-4">{{ $userCertificate->certificate_code ?? 'Belirtilmemiş' }}</td>
+                                <td class="px-6 py-4">{{ $userCertificate->register_no ?? 'Belirtilmemiş' }}</td>
+                                <td class="px-6 py-4">{{ $userCertificate->content1 ?? 'Belirtilmemiş' }}</td>
+                                <td class="px-6 py-4">{{ $userCertificate->content2 ?? 'Belirtilmemiş' }}</td>
                                 <td class="px-6 py-4">{{ $userCertificate->issuing_institution ?? 'Belirtilmemiş' }}</td>
                                 <td class="px-6 py-4">
                                     {{ $userCertificate->acquisition_date ? \Carbon\Carbon::parse($userCertificate->acquisition_date)->format('d.m.Y') : 'Belirtilmemiş' }}
@@ -147,7 +181,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7" class="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
+                                <td colspan="10" class="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
                                     Henüz atanmış sertifika bulunmuyor.
                                 </td>
                             </tr>

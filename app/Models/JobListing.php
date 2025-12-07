@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class CertificateEducation extends Model
+class JobListing extends Model
 {
     use HasFactory;
 
@@ -14,12 +14,16 @@ class CertificateEducation extends Model
      *
      * @var array<int, string>
      */
-
-    protected $table = 'certificate_educations';
-
     protected $fillable = [
-        'certificate_id',
-        'course_name'
+        'job_title',
+        'job_description',
+        'phone',
     ];
-
 }
+
+
+
+
+
+
+

@@ -34,10 +34,27 @@ class AuthController extends Controller
         $request->validate([
             'email' => 'required|email',
             'password' => 'required|min:6',
+            // 'g-recaptcha-response' => 'required',
         ], [
             'email.email' => 'Geçerli bir email adresi giriniz.',
             'password.min' => 'Şifre en az 6 karakter olmalıdır.',
+            // 'g-recaptcha-response.required' => 'Lütfen reCAPTCHA doğrulamasını tamamlayın.',
         ]);
+
+        // Verify reCAPTCHA
+        // $recaptchaSecret = config('services.recaptcha.secret_key');
+        // $recaptchaResponse = $request->input('g-recaptcha-response');
+        
+        // if ($recaptchaSecret) {
+        //     $verifyResponse = file_get_contents("https://www.google.com/recaptcha/api/siteverify?secret={$recaptchaSecret}&response={$recaptchaResponse}");
+        //     $responseData = json_decode($verifyResponse);
+            
+        //     if (!$responseData->success || $responseData->score < 0.5) {
+        //         return back()->withErrors([
+        //             'g-recaptcha-response' => 'reCAPTCHA doğrulaması başarısız. Lütfen tekrar deneyin.',
+        //         ])->withInput($request->except('password'));
+        //     }
+        // }
 
         // Login credentials
         $credentials = $request->only('email', 'password');

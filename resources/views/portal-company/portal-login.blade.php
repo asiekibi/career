@@ -182,16 +182,10 @@
             .then(data => {
                 console.log('Response data:', data); // Debug için
                 if (data.success) {
-                    // Register numarası ile giriş yapıldıysa öğrenci bilgilerini göster
+                    // Register numarası ile giriş yapıldıysa direkt main sayfasına yönlendir
                     if (data.student) {
-                        document.getElementById('studentName').textContent = data.student.name + ' ' + data.student.surname;
-                        document.getElementById('studentPhoto').src = data.student.profile_photo_url || 'https://via.placeholder.com/96';
-                        document.getElementById('viewCvBtn').onclick = function() {
-                            window.location.href = '{{ url("company-portal/student-cv") }}/' + data.student.id;
-                        };
-                        
-                        errorMessage.classList.add('hidden');
-                        successResult.classList.remove('hidden');
+                        // Başarılı giriş sonrası direkt main sayfasına yönlendir
+                        window.location.href = '{{ route("company-portal.main") }}';
                     }
                 } else {
                     successResult.classList.add('hidden');

@@ -103,7 +103,7 @@ APP_NAME=Kariyer
 APP_ENV=production
 APP_KEY=
 APP_DEBUG=false
-APP_URL=http://142.93.233.17
+APP_URL=https://asiaccreditation.com
 
 DB_CONNECTION=mysql
 DB_HOST=127.0.0.1
@@ -148,7 +148,7 @@ Aşağıdaki yapılandırmayı ekle:
 ```nginx
 server {
     listen 80;
-    server_name 142.93.233.17;
+    server_name asiaccreditation.com www.asiaccreditation.com 142.93.233.17;
     root /var/www/kariyer/public;
 
     add_header X-Frame-Options "SAMEORIGIN";
@@ -210,11 +210,89 @@ ufw allow 443/tcp
 ufw enable
 ```
 
-## 14. SSL Sertifikası (Opsiyonel - Let's Encrypt)
+## 14. SSL Sertifikası Kurulumu (Let's Encrypt)
 
+### Domain Bilgileri:
+- **IP Adresi:** 142.93.233.17
+- **Domain:** asiaccreditation.com
+- **Tam URL:** https://asiaccreditation.com
+
+### Ön Hazırlık:
+Domain'in IP adresine yönlendirildiğinden emin olun. DNS kayıtlarınızda A kaydı şu şekilde olmalı:
+```
+A    @    142.93.233.17
+A    www  142.93.233.17
+```
+
+### SSL Sertifikası Kurulumu:
+
+1. **Certbot ve Nginx eklentisini kurun:**
 ```bash
 apt install -y certbot python3-certbot-nginx
-certbot --nginx -d yourdomain.com
+```
+
+2. **Nginx yapılandırmasını domain için güncelleyin:**
+```bash
+nano /etc/nginx/sites-available/kariyer
+```
+
+Nginx yapılandırmasında `server_name` satırını güncelleyin:
+```nginx
+server {
+    listen 80;
+    server_name asiaccreditation.com www.asiaccreditation.com;
+    root /var/www/kariyer/public;
+    # ... diğer ayarlar ...
+}
+```
+
+3. **Nginx yapılandırmasını test edin ve yeniden yükleyin:**
+```bash
+nginx -t
+systemctl reload nginx
+```
+
+4. **SSL sertifikasını alın:**
+```bash
+certbot --nginx -d asiaccreditation.com -d www.asiaccreditation.com
+```
+
+Certbot size birkaç soru soracak:
+- Email adresi girin (sertifika yenileme bildirimleri için)
+- Hizmet şartlarını kabul edin (A)
+- HTTP trafiğini HTTPS'e yönlendirmek isteyip istemediğinizi soracak (2 seçin - otomatik yönlendirme için)
+
+5. **Sertifika otomatik yenileme testi:**
+```bash
+certbot renew --dry-run
+```
+
+6. **.env dosyasını HTTPS için güncelleyin:**
+```bash
+nano /var/www/kariyer/.env
+```
+
+`APP_URL` satırını güncelleyin:
+```env
+APP_URL=https://asiaccreditation.com
+```
+
+7. **Laravel cache'lerini temizleyin:**
+```bash
+cd /var/www/kariyer
+php artisan config:clear
+php artisan config:cache
+```
+
+### SSL Sertifikası Otomatik Yenileme:
+Let's Encrypt sertifikaları 90 günde bir yenilenir. Certbot otomatik olarak bunu yönetir, ancak manuel kontrol için:
+```bash
+certbot renew
+```
+
+Sertifika yenileme durumunu kontrol etmek için:
+```bash
+certbot certificates
 ```
 
 ## 15. Optimizasyon
@@ -264,4 +342,5 @@ php artisan view:clear
 # Logları temizle
 > /var/www/kariyer/storage/logs/laravel.log
 ```
+
 

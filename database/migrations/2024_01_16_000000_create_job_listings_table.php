@@ -11,13 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('certificates', function (Blueprint $table) {
+        Schema::create('job_listings', function (Blueprint $table) {
             $table->id();
-            $table->string('certificate_name');
-            $table->enum('type', ['ders', 'kurs'])->default('ders');
-            $table->string('register_no')->nullable();
-            $table->text('content')->nullable();
-            $table->string('template_path')->nullable();
+            $table->string('job_title');
+            $table->text('job_description');
+            $table->string('phone');
             $table->timestamps();
         });
     }
@@ -27,7 +25,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('certificates');
+        Schema::dropIfExists('job_listings');
     }
 };
 

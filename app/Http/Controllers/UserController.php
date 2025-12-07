@@ -16,6 +16,7 @@ use App\Models\Education;
 use App\Models\Ability;
 use App\Models\Language;
 use App\Models\Experience;
+use App\Models\JobListing;
 use App\Mail\NewUserPasswordMail;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
@@ -523,6 +524,15 @@ class UserController extends Controller
             ->sortByDesc('point');
         
         return view('user.carier-sequence', compact('allStudents'));
+    }
+
+    /**
+     * Display job listings page for users
+     */
+    public function jobListings(): View
+    {
+        $jobListings = JobListing::orderBy('created_at', 'desc')->get();
+        return view('user.job-listings', compact('jobListings'));
     }
 
     /**

@@ -30,7 +30,7 @@
             <div>
                 <h2 class="text-2xl font-bold text-gray-900 dark:text-white">CV</h2>
             </div>
-            <a href="{{ route('portal-login') }}" class="bg-gray-500 text-white px-4 py-2 rounded-lg font-semibold text-sm hover:bg-gray-600 transition-colors flex items-center gap-2">
+            <a href="{{ route('company-portal-login') }}" class="bg-gray-500 text-white px-4 py-2 rounded-lg font-semibold text-sm hover:bg-gray-600 transition-colors flex items-center gap-2">
                 <span class="material-symbols-outlined text-base">arrow_back</span>
                 Geri Dön
             </a>

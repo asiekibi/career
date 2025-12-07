@@ -26,7 +26,7 @@
                                     <th class="px-6 py-3" scope="col">Telefon</th>
                                     <th class="px-6 py-3" scope="col">Email</th>
                                     <th class="px-6 py-3" scope="col">Vergi No</th>
-                                    <th class="px-6 py-3" scope="col">İşlem</th>
+                                    <th class="px-6 py-3 text-center" scope="col">İşlem</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -57,18 +57,20 @@
                                                 {{ $company->tax_number }}
                                             </div>
                                         </td>
-                                        <td class="px-6 py-4">
-                                            @if($company->has_permission)
-                                                <button onclick="updatePermission({{ $company->id }}, false)" 
-                                                        class="bg-red-500 text-white px-3 py-1 rounded text-xs hover:bg-red-600 transition-colors">
-                                                    Geri Çek
-                                                </button>
-                                            @else
-                                                <button onclick="updatePermission({{ $company->id }}, true)" 
-                                                        class="bg-green-500 text-white px-3 py-1 rounded text-xs hover:bg-green-600 transition-colors">
-                                                    İzin Ver
-                                                </button>
-                                            @endif
+                                        <td class="px-6 py-4 text-center">
+                                            <div class="flex items-center justify-center">
+                                                @if($company->has_permission)
+                                                    <button onclick="updatePermission({{ $company->id }}, false)" 
+                                                            class="p-2 text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors" title="Geri Çek">
+                                                        <span class="material-symbols-outlined text-lg">block</span>
+                                                    </button>
+                                                @else
+                                                    <button onclick="updatePermission({{ $company->id }}, true)" 
+                                                            class="p-2 text-gray-500 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg transition-colors" title="İzin Ver">
+                                                        <span class="material-symbols-outlined text-lg">check_circle</span>
+                                                    </button>
+                                                @endif
+                                            </div>
                                         </td>
                                     </tr>
                                 @endforeach
@@ -86,16 +88,16 @@
                                     <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ $company->company_name }}</h3>
                                     <p class="text-sm text-gray-600 dark:text-gray-400">{{ $company->contact_person }}</p>
                                 </div>
-                                <div class="flex gap-2">
+                                <div class="flex items-center gap-2">
                                     @if($company->has_permission)
                                         <button onclick="updatePermission({{ $company->id }}, false)" 
-                                                class="bg-red-500 text-white px-3 py-1 rounded text-xs hover:bg-red-600 transition-colors">
-                                            Geri Çek
+                                                class="p-2 text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors" title="Geri Çek">
+                                            <span class="material-symbols-outlined text-lg">block</span>
                                         </button>
                                     @else
                                         <button onclick="updatePermission({{ $company->id }}, true)" 
-                                                class="bg-green-500 text-white px-3 py-1 rounded text-xs hover:bg-green-600 transition-colors">
-                                            İzin Ver
+                                                class="p-2 text-gray-500 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg transition-colors" title="İzin Ver">
+                                            <span class="material-symbols-outlined text-lg">check_circle</span>
                                         </button>
                                     @endif
                                 </div>

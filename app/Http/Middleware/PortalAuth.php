@@ -21,7 +21,7 @@ class PortalAuth
         
         if (!in_array($routeName, $allowedRoutes)) {
             if ($request->is('company-portal*')) {
-                if (!session('is_company_auth')) {
+                if (!session('student_id')) {
                     return redirect()->route('company-portal-login');
                 }
             } elseif ($request->is('student-portal*')) {

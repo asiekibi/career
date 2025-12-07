@@ -62,6 +62,7 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
     Route::controller(CertificateController::class)->group(function () {
         Route::post('/certificates', 'store')->name('admin.certificates.store');
         Route::get('/certificates', 'index')->name('admin.certificates');
+        Route::get('/certificates/{id}/download-template', 'downloadTemplate')->name('admin.certificates.download-template');
         
         //admin.add-certificate
         Route::get('/students/{id}/assign-certificate', 'getAssignCertificate')->name('admin.students.assign-certificate');
@@ -86,50 +87,21 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
 
     //admin.instructor-card-requests
     Route::get('/instructor-card-requests', [InstructorCardController::class, 'index'])->name('admin.instructor-card-requests');
+    Route::get('/instructor-card-requests/{id}', [InstructorCardController::class, 'show'])->name('admin.instructor-card-requests.show');
+    Route::post('/instructor-card-requests/{id}/toggle-card-status', [InstructorCardController::class, 'toggleCardStatus'])->name('admin.instructor-card-requests.toggle-card-status');
+    Route::post('/instructor-card-requests/{id}/approve', [InstructorCardController::class, 'approve'])->name('admin.instructor-card-requests.approve');
+    Route::post('/instructor-card-requests/{id}/reject', [InstructorCardController::class, 'reject'])->name('admin.instructor-card-requests.reject');
+    Route::post('/instructor-card-requests/{id}/increase-rights', [InstructorCardController::class, 'increaseRequestRights'])->name('admin.instructor-card-requests.increase-rights');
     
-    
-    Route::get('/download/pirus-app', function () {
-        $password = '12345';
-        
-        $pdf = new \TCPDF('P', 'mm', 'A4', true, 'UTF-8', false);
-        
-        $pdf->SetCreator('Kariyer Sistemi');
-        $pdf->SetAuthor('Kariyer Sistemi');
-        $pdf->SetTitle('Pirus App');
-        $pdf->SetSubject('Pirus App');
-        
-        $pdf->SetProtection(
-            ['print', 'modify', 'copy', 'annot-forms'],
-            $password,
-            $password
-        );
-        
-        $pdf->AddPage();
-        
-        $pdf->SetFont('helvetica', 'B', 20);
-        $pdf->Cell(0, 10, 'Pirus App', 0, 1, 'C');
-        $pdf->Ln(10);
-        
-        $pdf->SetFont('helvetica', '', 12);
-        $pdf->MultiCell(0, 10, 'Bu dosya şifre korumalıdır. Açmak için şifre gereklidir.', 0, 'L');
-        $pdf->Ln(10);
-        
-        $pdf->SetFont('helvetica', 'B', 14);
-        $pdf->Cell(0, 10, 'Önemli Not:', 0, 1, 'L');
-        $pdf->SetFont('helvetica', '', 12);
-        $pdf->MultiCell(0, 10, 'Bu PDF dosyası şifre korumalı olarak oluşturulmuştur. Dosyayı açmak için şifre gereklidir.', 0, 'L');
-        $pdf->Ln(5);
-        
-        $pdf->SetFont('helvetica', 'I', 10);
-        $pdf->Cell(0, 10, 'Şifre: 12345', 0, 1, 'C');
-        
-        $pdfContent = $pdf->Output('', 'S');
-        
-        return response($pdfContent, 200)
-            ->header('Content-Type', 'application/pdf')
-            ->header('Content-Disposition', 'attachment; filename="pirus app.pdf"')
-            ->header('Cache-Control', 'private, must-revalidate');
-    })->name('admin.download.pirus-app');
+    //admin.job-listings
+    Route::prefix('job-listings')->group(function () {
+        Route::get('/', [\App\Http\Controllers\JobListingController::class, 'index'])->name('admin.job-listings.index');
+        Route::get('/create', [\App\Http\Controllers\JobListingController::class, 'create'])->name('admin.job-listings.create');
+        Route::post('/', [\App\Http\Controllers\JobListingController::class, 'store'])->name('admin.job-listings.store');
+        Route::get('/{id}/edit', [\App\Http\Controllers\JobListingController::class, 'edit'])->name('admin.job-listings.edit');
+        Route::put('/{id}', [\App\Http\Controllers\JobListingController::class, 'update'])->name('admin.job-listings.update');
+        Route::delete('/{id}', [\App\Http\Controllers\JobListingController::class, 'destroy'])->name('admin.job-listings.destroy');
+    });
 
   
 });
@@ -144,6 +116,13 @@ Route::prefix('user')->middleware(['auth', 'role:user'])->controller(UserControl
     
     // Carier page / User routes
     Route::get('/carier-sequence', 'carierSequence')->name('user.carier-sequence');
+    
+    // Job listings page / User routes
+    Route::get('/job-listings', 'jobListings')->name('user.job-listings.index');
+    
+    // Instructor card request / User routes
+    Route::get('/instructor-card-request', [InstructorCardController::class, 'create'])->name('user.instructor-card-request.create');
+    Route::post('/instructor-card-request', [InstructorCardController::class, 'store'])->name('user.instructor-card-request.store');
    
     // Show routes / User routes
     Route::get('/cv/{id}', 'showCv')->name('user.cv.show');
@@ -162,9 +141,10 @@ Route::prefix('user')->middleware(['auth', 'role:user'])->controller(UserControl
 
     // update profile
     Route::post('/user/update-profile', 'updateProfile')->name('user.update-profile');
+    
+    // Certificate download route for user
+    Route::get('/certificate/{id}/download', [CertificateController::class, 'downloadCertificate'])->name('user.certificate.download');
 });
-
-
 
 // Portal routes - prefix ile grupla
 Route::prefix('student-portal')->middleware('portal.auth')->controller(PortalStudentController::class)->group(function () {
@@ -176,10 +156,14 @@ Route::prefix('student-portal')->middleware('portal.auth')->controller(PortalStu
     Route::post('/partner-company', 'storePartnerCompany')->name('portal.partner-company.store');
 });
 
+// Public certificate download route (for portals and users)
+Route::get('/certificate/{id}/download', [CertificateController::class, 'downloadCertificate'])->name('certificate.download');
+
 // Company Portal routes - prefix ile grupla
 Route::prefix('company-portal')->middleware('portal.auth')->controller(PortalCompanyController::class)->group(function () {
     Route::get('/', 'showPortalLogin')->name('company-portal-login');
     Route::post('/search', 'searchCertificate')->name('company-portal.search');
+    Route::get('/main', 'showMain')->name('company-portal.main');
     Route::get('/student-cv/{userId}', 'showStudentCv')->name('company-portal.student.cv');
     Route::get('/career-sequence', 'careerSequence')->name('company-portal.career-sequence');
     Route::get('/partner-company', 'partnerCompany')->name('company-portal.partner-company');

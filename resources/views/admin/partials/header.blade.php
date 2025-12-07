@@ -3,6 +3,7 @@
 <head>
     <meta charset="utf-8"/>
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Admin Panel</title>
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <link href="https://fonts.googleapis.com" rel="preconnect"/>
@@ -112,6 +113,14 @@
                 </span>
                 Eğitmen Kimlik Kartı Talepleri
             </a>
+            
+            <!-- Job Listings menu -->
+            <a class="flex items-center gap-3 px-4 py-2 rounded-lg {{ request()->routeIs('admin.job-listings*') ? 'bg-primary/10 text-primary font-medium' : 'text-gray-600 dark:text-gray-300 hover:bg-primary/10 dark:hover:bg-primary/20 hover:text-primary dark:hover:text-primary transition-colors' }}" href="{{ route('admin.job-listings.index') }}">
+                <span class="material-symbols-outlined">
+                    work
+                </span>
+                İş İlanları
+            </a>
         </nav>
 
         <!-- Mobile logout button - Only visible on mobile -->
@@ -145,6 +154,8 @@
                     Partner Firmalar
                 @elseif(request()->routeIs('admin.instructor-card-requests'))
                     Eğitmen Kimlik Kartı Talepleri
+                @elseif(request()->routeIs('admin.job-listings*'))
+                    İş İlanları
                 @else
                     Admin Panel
                 @endif

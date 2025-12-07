@@ -131,7 +131,7 @@
                                 <th class="px-6 py-3" scope="col">Rozet</th>
                                 <th class="px-6 py-3" scope="col">Puan</th>
                                 <th class="px-6 py-3" scope="col">Oluşturulma Tarihi</th>
-                                <th class="px-6 py-3" scope="col">İşlemler</th>
+                                <th class="px-6 py-3 text-center" scope="col">İşlemler</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -151,21 +151,24 @@
                                     </th>
                                     <td class="px-6 py-4">{{ $badge->point }}</td>
                                     <td class="px-6 py-4">{{ $badge->created_at->format('Y-m-d') }}</td>
-                                    <td class="px-6 py-4 text-right">
-                                        <button type="button" 
-                                                class="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
-                                                onclick="document.getElementById('delete-form-{{ $badge->id }}').submit();">
-                                            <span class="material-symbols-outlined">delete</span>
-                                        </button>
-                                        
-                                        <!-- Gizli form -->
-                                        <form id="delete-form-{{ $badge->id }}" 
-                                              action="{{ route('admin.badges.destroy') }}" 
-                                              method="POST" 
-                                              style="display: none;">
-                                            @csrf
-                                            <input type="hidden" name="id" value="{{ $badge->id }}">
-                                        </form>
+                                    <td class="px-6 py-4 text-center">
+                                        <div class="flex items-center justify-center">
+                                            <button type="button" 
+                                                    class="p-2 text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                                                    onclick="confirmDelete({{ $badge->id }})"
+                                                    title="Sil">
+                                                <span class="material-symbols-outlined text-lg">delete</span>
+                                            </button>
+                                            
+                                            <!-- Gizli form -->
+                                            <form id="delete-form-{{ $badge->id }}" 
+                                                  action="{{ route('admin.badges.destroy') }}" 
+                                                  method="POST" 
+                                                  style="display: none;">
+                                                @csrf
+                                                <input type="hidden" name="id" value="{{ $badge->id }}">
+                                            </form>
+                                        </div>
                                     </td>
                                 </tr>
                             @empty
@@ -183,6 +186,28 @@
     </div>
 </main>
 <script>
+    // Delete confirmation function
+    function confirmDelete(badgeId) {
+        Swal.fire({
+            title: 'Emin misiniz?',
+            text: "Bu rozeti silmek istediğinizden emin misiniz?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#6b7280',
+            confirmButtonText: 'Evet, Sil!',
+            cancelButtonText: 'İptal',
+            reverseButtons: true
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const form = document.getElementById(`delete-form-${badgeId}`);
+                if (form) {
+                    form.submit();
+                }
+            }
+        });
+    }
+
     // file select
     document.addEventListener('DOMContentLoaded', function() {
         const fileInput = document.getElementById('badge-icon-upload');
