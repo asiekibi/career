@@ -129,10 +129,20 @@ class AuthController extends Controller
      */
     public function logout(Request $request)
     {
+        // Company kullanıcısı mı kontrol et (logout'tan önce)
+        $isCompanyAuth = session('is_company_auth', false);
+        $loginType = session('login_type', '');
+        $isCompany = Auth::check() && Auth::user() && Auth::user()->role === 'company';
+        
         Auth::logout();
         
         $request->session()->invalidate();
         $request->session()->regenerateToken();
+        
+        // Eğer company portal'dan çıkış yapıldıysa portal-login'e yönlendir
+        if ($isCompanyAuth || $loginType === 'company' || $isCompany) {
+            return redirect()->route('company-portal-login')->with('success', 'Başarıyla çıkış yaptınız!');
+        }
         
         return redirect('/login')->with('success', 'Başarıyla çıkış yaptınız!');
     }
