@@ -111,9 +111,9 @@ class AuthController extends Controller
             // Create reset URL
             $resetUrl = route('password.reset', ['token' => $token, 'email' => $user->email]);
             
-            // Send email
+            // Send email (senkron - queue kullanmadan)
             try {
-                Mail::to($user->email)->send(new PasswordResetMail($user, $resetUrl));
+                Mail::to($user->email)->sendNow(new PasswordResetMail($user, $resetUrl));
                 
                 return back()->with('status', 'Şifre sıfırlama bağlantısı email adresinize gönderildi.');
             } catch (\Exception $e) {

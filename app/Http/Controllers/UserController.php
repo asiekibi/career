@@ -236,9 +236,9 @@ class UserController extends Controller
         
         $user = User::create($userData);
     
-        // Email gönder
+        // Email gönder (senkron - queue kullanmadan)
         try {
-            Mail::to($user->email)->send(new NewUserPasswordMail($user, $temporaryPassword));
+            Mail::to($user->email)->sendNow(new NewUserPasswordMail($user, $temporaryPassword));
             
             return redirect()->route('admin.dashboard')->with('success', 'Öğrenci başarıyla eklendi! Şifre email ile gönderildi.');
         } catch (\Exception $e) {
@@ -809,9 +809,9 @@ class UserController extends Controller
             $companyRequest->approved_at = now();
             $companyRequest->save();
 
-            // Şifreyi maile gönder
+            // Şifreyi maile gönder (senkron - queue kullanmadan)
             try {
-                Mail::to($user->email)->send(new NewUserPasswordMail($user, $temporaryPassword));
+                Mail::to($user->email)->sendNow(new NewUserPasswordMail($user, $temporaryPassword));
             } catch (\Exception $e) {
                 // Mail gönderilemese bile kullanıcı oluşturuldu
                 \Log::error('Company request approval mail error: ' . $e->getMessage());
