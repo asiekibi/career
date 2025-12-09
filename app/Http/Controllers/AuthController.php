@@ -111,12 +111,36 @@ class AuthController extends Controller
             // Create reset URL
             $resetUrl = route('password.reset', ['token' => $token, 'email' => $user->email]);
             
+            // Log mail gönderim denemesi
+            \Log::info('Şifre sıfırlama maili gönderiliyor', [
+                'user_id' => $user->id,
+                'email' => $user->email,
+                'reset_url' => $resetUrl,
+                'timestamp' => now()
+            ]);
+            
             // Send email (senkron - queue kullanmadan)
             try {
                 Mail::to($user->email)->sendNow(new PasswordResetMail($user, $resetUrl));
                 
+                // Log başarılı gönderim
+                \Log::info('Şifre sıfırlama maili başarıyla gönderildi', [
+                    'user_id' => $user->id,
+                    'email' => $user->email,
+                    'timestamp' => now()
+                ]);
+                
                 return back()->with('status', 'Şifre sıfırlama bağlantısı email adresinize gönderildi.');
             } catch (\Exception $e) {
+                // Log hata
+                \Log::error('Şifre sıfırlama maili gönderim hatası', [
+                    'user_id' => $user->id,
+                    'email' => $user->email,
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString(),
+                    'timestamp' => now()
+                ]);
+                
                 return back()->withErrors(['email' => 'Email gönderilemedi. Lütfen tekrar deneyin.']);
             }
         }
