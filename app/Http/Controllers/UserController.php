@@ -17,6 +17,7 @@ use App\Models\Ability;
 use App\Models\Language;
 use App\Models\Experience;
 use App\Models\JobListing;
+use App\Models\CompanyRequest;
 use App\Mail\NewUserPasswordMail;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
@@ -202,6 +203,13 @@ class UserController extends Controller
         // Rastgele register numarası oluştur (veritabanında olmayan)
         $registerNumber = $this->generateUniqueRegisterNumber();
     
+        // Company role kontrolü - Sadece admin onayı ile oluşturulabilir
+        if ($request->has('role') && $request->role === 'company') {
+            return redirect()->back()
+                ->withErrors(['role' => 'Company kullanıcısı sadece admin onayı ile oluşturulabilir.'])
+                ->withInput();
+        }
+
         // Kullanıcı oluştur
         $userData = [
             'name' => $name,
@@ -216,7 +224,7 @@ class UserController extends Controller
             'country_id' => $request->country_id,
             'contact_info' => $request->contact_info,
             'profile_photo_url' => '',
-            'role' => 'user',
+            'role' => 'user', // Her zaman 'user' - company sadece approveCompanyRequest ile oluşturulur
             'is_active' => true,
         ];
         
@@ -716,7 +724,15 @@ class UserController extends Controller
     public function partnerCompanies(): View
     {
         $partnerCompanies = \App\Models\PartnerCompany::orderBy('created_at', 'desc')->get();
-        return view('admin.partner-companies', compact('partnerCompanies'));
+        $companyRequests = CompanyRequest::where('status', 'pending')->orderBy('created_at', 'desc')->get();
+        
+        // Onaylanmış firmaları users tablosundan al (role='company' ve company_approved=true)
+        $approvedCompanies = User::where('role', 'company')
+            ->where('company_approved', true)
+            ->orderBy('created_at', 'desc')
+            ->get();
+        
+        return view('admin.partner-companies', compact('partnerCompanies', 'companyRequests', 'approvedCompanies'));
     }
 
     /**
@@ -732,6 +748,135 @@ class UserController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'İzin durumu güncellendi'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Hata: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Company request onaylama - User oluştur ve şifre gönder
+     */
+    public function approveCompanyRequest(Request $request, $id)
+    {
+        try {
+            $companyRequest = CompanyRequest::findOrFail($id);
+            
+            // Zaten onaylanmış mı kontrol et
+            if ($companyRequest->status === 'approved') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Bu başvuru zaten onaylanmış.'
+                ], 400);
+            }
+
+            // Email ile kullanıcı var mı kontrol et
+            $existingUser = User::where('email', $companyRequest->email)->first();
+            if ($existingUser) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Bu email adresi ile zaten bir kullanıcı kayıtlı.'
+                ], 400);
+            }
+
+            $temporaryPassword = Str::random(12);
+
+            // User oluştur
+            $user = User::create([
+                'name' => $companyRequest->name,
+                'surname' => $companyRequest->surname,
+                'email' => $companyRequest->email,
+                'password' => Hash::make($temporaryPassword),
+                'gender' => 'other', // Default
+                'role' => 'company',
+                'birth_date' => now()->subYears(25), // Default
+                'gsm' => $companyRequest->phone ?? '',
+                'point' => '0',
+                'location_id' => null,
+                'district_id' => null,
+                'country_id' => null,
+                'contact_info' => true,
+                'is_active' => true,
+                'company_approved' => true,
+            ]);
+
+            // Company request'i güncelle
+            $companyRequest->status = 'approved';
+            $companyRequest->approved_by = Auth::id();
+            $companyRequest->approved_at = now();
+            $companyRequest->save();
+
+            // Şifreyi maile gönder
+            try {
+                Mail::to($user->email)->send(new NewUserPasswordMail($user, $temporaryPassword));
+            } catch (\Exception $e) {
+                // Mail gönderilemese bile kullanıcı oluşturuldu
+                \Log::error('Company request approval mail error: ' . $e->getMessage());
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Başvuru onaylandı ve şifre email adresine gönderildi.'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Hata: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Company request reddetme
+     */
+    public function rejectCompanyRequest(Request $request, $id)
+    {
+        try {
+            $companyRequest = CompanyRequest::findOrFail($id);
+            
+            if ($companyRequest->status === 'rejected') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Bu başvuru zaten reddedilmiş.'
+                ], 400);
+            }
+
+            $companyRequest->status = 'rejected';
+            $companyRequest->approved_by = Auth::id();
+            $companyRequest->approved_at = now();
+            $companyRequest->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Başvuru reddedildi.'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Hata: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Partner firmayı kaldır (company_approved = false yap)
+     */
+    public function removePartnerCompany(Request $request, $id)
+    {
+        try {
+            $company = User::where('id', $id)
+                ->where('role', 'company')
+                ->firstOrFail();
+
+            $company->company_approved = false;
+            $company->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Partner firma başarıyla kaldırıldı. Firma artık giriş yapamayacak.'
             ]);
         } catch (\Exception $e) {
             return response()->json([

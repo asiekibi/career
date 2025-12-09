@@ -3,64 +3,79 @@
 <!-- main content -->
 <main class="flex-1 p-4 lg:p-8">
     <div class="bg-white dark:bg-background-dark rounded-xl shadow-sm">
-        <div class="p-4 lg:p-6 border-b border-gray-200 dark:border-gray-800">
-            <!-- title -->
+        <div class="p-4 lg:p-6 border-b border-gray-200 dark:border-gray-800 flex justify-between items-center">
             <div>
-                <h2 class="text-xl lg:text-2xl font-bold text-gray-900 dark:text-white">Cv</h2>
+                <h2 class="text-xl lg:text-2xl font-bold text-gray-900 dark:text-white">CV</h2>
+                <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">{{ $student->name }} {{ $student->surname }}</p>
             </div>
+            <a href="{{ route('company-portal.main') }}" class="bg-gray-500 text-white px-4 py-2 rounded-lg font-semibold text-sm hover:bg-gray-600 transition-colors flex items-center gap-2">
+                <span class="material-symbols-outlined text-base">arrow_back</span>
+                Geri Dön
+            </a>
         </div>
         <div class="p-4 lg:p-6">
-            <!-- Responsive Profile Section -->
-            <div class="flex flex-col sm:flex-row items-start gap-4 lg:gap-6">
-                @if($student->profile_photo_url)
-                    <img alt="Profil Resmi" class="w-24 h-24 sm:w-32 sm:h-32 rounded-full object-cover mx-auto sm:mx-0" src="{{ asset($student->profile_photo_url) }}"/>
-                @else
-                    <div class="w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center mx-auto sm:mx-0">
-                        <span class="material-symbols-outlined text-gray-500 text-4xl sm:text-6xl">person</span>
-                    </div>
-                @endif
-                <div class="flex-1 text-center sm:text-left">
-                    <h3 class="text-xl lg:text-2xl font-bold text-gray-900 dark:text-white">{{ $student->name }} {{ $student->surname }}</h3>
-                    <div class="mt-4 space-y-2 lg:space-y-3">
-                        <div class="flex items-center text-gray-600 dark:text-gray-300 justify-center sm:justify-start">
-                            <span class="material-symbols-outlined mr-2 text-sm">cake</span>
-                            <span class="text-sm lg:text-base">{{ $student->birth_date ? $student->birth_date->format('d.m.Y') : 'Belirtilmemiş' }}</span>
-                        </div>
-                        <div class="flex items-center text-gray-600 dark:text-gray-300 justify-center sm:justify-start">
-                            <span class="material-symbols-outlined mr-2 text-sm">phone</span>
-                            <span class="text-sm lg:text-base">
-                                @if(session('is_company_auth'))
-                                    {{ $student->gsm ?? 'Belirtilmemiş' }}
+            <!-- İletişim Bilgileri - contact_info kapalıysa *** göster -->
+            <div class="mb-8 lg:mb-10">
+                <h3 class="text-lg lg:text-xl font-bold text-gray-900 dark:text-white mb-4">İletişim Bilgileri</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 lg:gap-6">
+                    <div class="flex items-center text-gray-600 dark:text-gray-300">
+                        <span class="material-symbols-outlined mr-2 text-sm">person</span>
+                        <div>
+                            <span class="text-xs text-gray-500 dark:text-gray-400">Ad Soyad</span>
+                            <p class="text-sm lg:text-base font-medium text-gray-900 dark:text-white">
+                                @if($student->contact_info)
+                                    {{ $student->name }} {{ $student->surname }}
                                 @else
+                                    ***
+                                @endif
+                            </p>
+                        </div>
+                    </div>
+                    @if($student->birth_date)
+                        <div class="flex items-center text-gray-600 dark:text-gray-300">
+                            <span class="material-symbols-outlined mr-2 text-sm">cake</span>
+                            <div>
+                                <span class="text-xs text-gray-500 dark:text-gray-400">Doğum Tarihi</span>
+                                <p class="text-sm lg:text-base font-medium text-gray-900 dark:text-white">
                                     @if($student->contact_info)
-                                        {{ $student->gsm ?? 'Belirtilmemiş' }}
+                                        {{ $student->birth_date->format('d.m.Y') }}
                                     @else
                                         ***
                                     @endif
-                                @endif
-                            </span>
+                                </p>
+                            </div>
                         </div>
-                        <div class="flex items-center text-gray-600 dark:text-gray-300 justify-center sm:justify-start">
+                    @endif
+                    @if($student->gsm)
+                        <div class="flex items-center text-gray-600 dark:text-gray-300">
+                            <span class="material-symbols-outlined mr-2 text-sm">phone</span>
+                            <div>
+                                <span class="text-xs text-gray-500 dark:text-gray-400">Telefon</span>
+                                <p class="text-sm lg:text-base font-medium text-gray-900 dark:text-white">
+                                    @if($student->contact_info)
+                                        {{ $student->gsm }}
+                                    @else
+                                        ***
+                                    @endif
+                                </p>
+                            </div>
+                        </div>
+                    @endif
+                    @if($student->email)
+                        <div class="flex items-center text-gray-600 dark:text-gray-300">
                             <span class="material-symbols-outlined mr-2 text-sm">email</span>
-                            <span class="text-sm lg:text-base">
-                                @if(session('is_company_auth'))
-                                    {{ $student->email }}
-                                @else
+                            <div>
+                                <span class="text-xs text-gray-500 dark:text-gray-400">Email</span>
+                                <p class="text-sm lg:text-base font-medium text-gray-900 dark:text-white">
                                     @if($student->contact_info)
                                         {{ $student->email }}
                                     @else
                                         ***
                                     @endif
-                                @endif
-                            </span>
+                                </p>
+                            </div>
                         </div>
-                        <div class="flex items-center text-gray-600 dark:text-gray-300 justify-center sm:justify-start">
-                            <span class="material-symbols-outlined mr-2 text-sm">star</span>
-                            <span class="text-sm lg:text-base">
-                                {{ $student->point ?? 0 }} Puan
-                            </span>
-                        </div>
-                    </div>
+                    @endif
                 </div>
             </div>
             
@@ -208,86 +223,21 @@
                 @endif
             @endif
 
-            @if($student->userBadges->count() > 0)
-                <div class="mt-8 lg:mt-10">
-                    <h4 class="text-lg lg:text-xl font-bold text-gray-900 dark:text-white mb-4">Kazanılan Rozetler</h4>
-                    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 lg:gap-6">
-                        @foreach($student->userBadges as $userBadge)
-                            <div class="flex flex-col items-center p-3 lg:p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800/50 text-center">
-                                @if($userBadge->badge && $userBadge->badge->badge_icon_url)
-                                    <img alt="{{ $userBadge->badge->badge_name }}" 
-                                         class="w-10 h-10 lg:w-12 lg:h-12 rounded-full object-cover" 
-                                         src="{{ asset($userBadge->badge->badge_icon_url) }}" 
-                                         title="{{ $userBadge->badge->badge_name }}"/>
-                                @else
-                                    <span class="material-symbols-outlined text-4xl lg:text-5xl text-yellow-500">military_tech</span>
-                                @endif
-                                <h5 class="mt-2 font-semibold text-gray-800 dark:text-gray-200 text-xs lg:text-sm">{{ $userBadge->badge->badge_name }}</h5>
-                            </div>
-                        @endforeach
-                    </div>
-                </div>
-            @endif
-
+            <!-- Sertifikalar -->
             @if($student->userCertificates->count() > 0)
                 <div class="mt-8 lg:mt-10">
                     <h4 class="text-lg lg:text-xl font-bold text-gray-900 dark:text-white mb-4">Sertifikalar</h4>
-                    
-                    <!-- Desktop Table (Hidden on Mobile) -->
-                    <div class="hidden lg:block overflow-x-auto">
-                        <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
-                            <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
-                                <tr>
-                                    <th class="px-6 py-3" scope="col">Sertifika Adı</th>
-                                    <th class="px-6 py-3" scope="col">Kodu</th>
-                                    <th class="px-6 py-3" scope="col">Derecesi</th>
-                                    <th class="px-6 py-3" scope="col">Kurum</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach($student->userCertificates as $userCertificate)
-                                    <tr class="bg-white border-b dark:bg-background-dark dark:border-gray-700">
-                                        <th class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white" scope="row">
-                                            {{ $userCertificate->certificate->certificate_name ?? 'Sertifika adı bulunamadı' }}
-                                        </th>
-                                        <td class="px-6 py-4">{{ $userCertificate->certificate_code ?? 'Belirtilmemiş' }}</td>
-                                        <td class="px-6 py-4">{{ $userCertificate->achievement_score ?? 'Belirtilmemiş' }}</td>
-                                        <td class="px-6 py-4">{{ $userCertificate->issuing_institution ?? 'Belirtilmemiş' }}</td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <!-- Mobile Cards (Visible on Mobile) -->
-                    <div class="lg:hidden space-y-4">
+                    <div class="space-y-2">
                         @foreach($student->userCertificates as $userCertificate)
-                            <div class="bg-white dark:bg-background-dark/50 rounded-lg shadow-sm p-4 border border-gray-200 dark:border-gray-700">
-                                <div class="space-y-2">
-                                    <div>
-                                        <span class="text-gray-500 dark:text-gray-400 text-sm">Sertifika Adı:</span>
-                                        <p class="text-gray-900 dark:text-white font-medium">{{ $userCertificate->certificate->certificate_name ?? 'Sertifika adı bulunamadı' }}</p>
-                                    </div>
-                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                        <div>
-                                            <span class="text-gray-500 dark:text-gray-400 text-sm">Kod:</span>
-                                            <p class="text-gray-900 dark:text-white">{{ $userCertificate->certificate_code ?? 'Belirtilmemiş' }}</p>
-                                        </div>
-                                        <div>
-                                            <span class="text-gray-500 dark:text-gray-400 text-sm">Derece:</span>
-                                            <p class="text-gray-900 dark:text-white">{{ $userCertificate->achievement_score ?? 'Belirtilmemiş' }}</p>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <span class="text-gray-500 dark:text-gray-400 text-sm">Kurum:</span>
-                                        <p class="text-gray-900 dark:text-white">{{ $userCertificate->issuing_institution ?? 'Belirtilmemiş' }}</p>
-                                    </div>
-                                </div>
+                            <div class="flex items-center text-gray-700 dark:text-gray-300">
+                                <span class="material-symbols-outlined mr-2 text-primary text-sm">verified</span>
+                                <span class="text-sm lg:text-base">{{ $userCertificate->certificate->certificate_name ?? 'Sertifika adı bulunamadı' }}</span>
                             </div>
                         @endforeach
                     </div>
                 </div>
             @endif
+
         </div>
     </div>
 </main>

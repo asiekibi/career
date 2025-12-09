@@ -5,8 +5,11 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\UserCertificate;
 use App\Models\User;
+use App\Models\Certificate;
 use Illuminate\View\View;
 use App\Models\PartnerCompany;
+use App\Models\CompanyRequest;
+use Illuminate\Support\Facades\Auth;
 
 class PortalCompanyController extends Controller
 {
@@ -16,6 +19,70 @@ class PortalCompanyController extends Controller
     public function showPortalLogin(): View
     {
         return view('portal-company.portal-login');
+    }
+
+    /**
+     * Company login - Email ve şifre ile normal auth girişi
+     */
+    public function login(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email',
+            'password' => 'required|min:6'
+        ], [
+            'email.required' => 'Email adresi gereklidir.',
+            'email.email' => 'Geçerli bir email adresi giriniz.',
+            'password.required' => 'Şifre gereklidir.',
+            'password.min' => 'Şifre en az 6 karakter olmalıdır.'
+        ]);
+
+        // Login credentials
+        $credentials = $request->only('email', 'password');
+
+        // Company tipi kullanıcıyı kontrol et
+        $company = User::where('email', $request->email)
+            ->where('role', 'company')
+            ->first();
+
+        if (!$company) {
+            return back()->withErrors([
+                'email' => 'Bu email adresi ile kayıtlı firma bulunamadı.'
+            ])->withInput($request->except('password'));
+        }
+
+        // Company onaylı mı kontrol et
+        if (!$company->company_approved) {
+            return back()->withErrors([
+                'email' => 'Firma hesabınız henüz onaylanmamış. Lütfen onay bekleyin.'
+            ])->withInput($request->except('password'));
+        }
+
+        // Aktif mi kontrol et
+        if (!$company->is_active) {
+            return back()->withErrors([
+                'email' => 'Firma hesabınız aktif değil.'
+            ])->withInput($request->except('password'));
+        }
+
+        // Normal auth ile giriş yap
+        if (Auth::attempt($credentials, $request->has('remember'))) {
+            $request->session()->regenerate();
+
+            // Session'a ek bilgileri kaydet
+            session([
+                'company_id' => Auth::user()->id,
+                'company_name' => Auth::user()->name . ' ' . Auth::user()->surname,
+                'is_company_auth' => true,
+                'login_type' => 'company'
+            ]);
+
+            return redirect()->route('company-portal.main');
+        }
+
+        // Giriş başarısız
+        return back()->withErrors([
+            'email' => 'Giriş başarısız. Email veya şifre hatalı.'
+        ])->withInput($request->except('password'));
     }
 
     /**
@@ -61,23 +128,39 @@ class PortalCompanyController extends Controller
      */
     public function showMain(): View
     {
-        // Session'dan öğrenci ID'sini al
-        $studentId = session('student_id');
-        
-        if (!$studentId) {
-            return redirect()->route('company-portal-login');
+        if (Auth::check() && Auth::user()->role === 'company') {
+            $company = Auth::user();
+            $companyName = $company->name . ' ' . $company->surname;
+            $isCompanyAuth = true;
+            $loginType = 'company';
+            
+            $users = User::where('role', 'user')
+                ->whereNull('deleted_at')
+                ->with(['userBadges.badge', 'cvs', 'userCertificates.certificate'])
+                ->orderBy('name', 'asc')
+                ->get();
+            
+            // Tüm sertifikaları filtreleme için getir
+            $certificates = Certificate::orderBy('certificate_name', 'asc')->get();
+            
+            return view('portal-company.main', compact('users', 'certificates', 'companyName', 'isCompanyAuth', 'loginType'));
         }
+        
+        $studentId = session('student_id');
+        if ($studentId) {
+            $student = User::where('id', $studentId)
+                ->with(['cvs.experiences', 'cvs.educations', 'cvs.abilities', 'cvs.languages', 'userBadges.badge', 'userCertificates.certificate'])
+                ->firstOrFail();
 
-        $student = User::where('id', $studentId)
-            ->with(['cvs.experiences', 'cvs.educations', 'cvs.abilities', 'cvs.languages', 'userBadges.badge', 'userCertificates.certificate'])
-            ->firstOrFail();
+            $companyName = session('company_name');
+            $isCompanyAuth = session('is_company_auth', false);
+            $loginType = session('login_type', 'student');
 
-        // Giriş tipini session'dan al
-        $loginType = session('login_type', 'student');
-        $companyName = session('company_name');
-        $isCompanyAuth = session('is_company_auth', false);
-
-        return view('portal-company.main', compact('student', 'loginType', 'companyName', 'isCompanyAuth'));
+            return view('portal-company.main', compact('student', 'loginType', 'companyName', 'isCompanyAuth'));
+        }
+        
+        // Hiç giriş yapılmamışsa login sayfasına yönlendir
+        return redirect()->route('company-portal-login');
     }
 
     /**
@@ -161,6 +244,60 @@ class PortalCompanyController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Bir hata oluştu: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Store company request - Public form submission
+     */
+    public function storeCompanyRequest(Request $request)
+    {
+        try {
+            $request->validate([
+                'name' => 'required|string|max:255',
+                'surname' => 'required|string|max:255',
+                'email' => 'required|email|max:255|unique:company_requests,email',
+                'company_name' => 'required|string|max:255',
+                'tax_number' => 'required|string|max:50|unique:company_requests,tax_number',
+                'tax_office' => 'nullable|string|max:255',
+                'phone' => 'nullable|string|max:20',
+                'address' => 'nullable|string',
+                'message' => 'nullable|string'
+            ], [
+                'email.unique' => 'Bu email adresi ile daha önce başvuru yapılmış.',
+                'tax_number.unique' => 'Bu vergi numarası ile daha önce başvuru yapılmış.'
+            ]);
+
+            CompanyRequest::create([
+                'name' => $request->name,
+                'surname' => $request->surname,
+                'email' => $request->email,
+                'company_name' => $request->company_name,
+                'tax_number' => $request->tax_number,
+                'tax_office' => $request->tax_office,
+                'phone' => $request->phone,
+                'address' => $request->address,
+                'message' => $request->message,
+                'status' => 'pending'
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Başvurunuz başarıyla gönderildi. En kısa sürede size dönüş yapacağız.'
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $errors = $e->errors();
+            $firstError = collect($errors)->flatten()->first();
+            
+            return response()->json([
+                'success' => false,
+                'message' => $firstError ?? 'Lütfen formu kontrol edin.'
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Bir hata oluştu. Lütfen tekrar deneyin.'
             ], 500);
         }
     }

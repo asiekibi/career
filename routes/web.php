@@ -43,8 +43,11 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
         Route::put('/students/{id}', 'update')->name('admin.students.update');
         Route::post('/students', 'store')->name('admin.students.store');
         Route::get('/students', 'index')->name('admin.students');
-        Route::get('/partner-companies', 'partnerCompanies')->name('admin.partner-companies');
-        Route::post('/partner-companies/{id}/permission', 'updatePartnerPermission')->name('admin.partner-companies.permission');
+                    Route::get('/partner-companies', 'partnerCompanies')->name('admin.partner-companies');
+                    Route::post('/partner-companies/{id}/permission', 'updatePartnerPermission')->name('admin.partner-companies.permission');
+                    Route::post('/partner-companies/{id}/remove', 'removePartnerCompany')->name('admin.partner-companies.remove');
+                    Route::post('/company-requests/{id}/approve', 'approveCompanyRequest')->name('admin.company-requests.approve');
+                    Route::post('/company-requests/{id}/reject', 'rejectCompanyRequest')->name('admin.company-requests.reject');
     });
 
     // Location routes
@@ -161,9 +164,17 @@ Route::prefix('student-portal')->middleware('portal.auth')->controller(PortalStu
 // Public certificate download route (for portals and users)
 Route::get('/certificate/{id}/download', [CertificateController::class, 'downloadCertificate'])->name('certificate.download');
 
+// Public company request form (no auth required)
+Route::get('/company-request', function () {
+    return view('company-request-form');
+})->name('company-request.form');
+
+Route::post('/company-request', [PortalCompanyController::class, 'storeCompanyRequest'])->name('company-request.store');
+
 // Company Portal routes - prefix ile grupla
 Route::prefix('company-portal')->middleware('portal.auth')->controller(PortalCompanyController::class)->group(function () {
     Route::get('/', 'showPortalLogin')->name('company-portal-login');
+    Route::post('/login', 'login')->name('company-portal.login');
     Route::post('/search', 'searchCertificate')->name('company-portal.search');
     Route::get('/main', 'showMain')->name('company-portal.main');
     Route::get('/student-cv/{userId}', 'showStudentCv')->name('company-portal.student.cv');

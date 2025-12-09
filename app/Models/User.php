@@ -38,7 +38,32 @@ class User extends Authenticatable
         'contact_info',
         'profile_photo_url',
         'is_active',
+        'company_approved',
     ];
+
+    /**
+     * Boot the model.
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        // Company kullanıcısı oluşturulurken company_approved kontrolü
+        // Company kullanıcısı sadece admin onayı ile (company_approved=true) oluşturulabilir
+        static::creating(function ($user) {
+            if ($user->role === 'company') {
+                // Company kullanıcısı oluşturulurken mutlaka company_approved=true olmalı
+                if (!$user->company_approved) {
+                    throw new \Exception('Company kullanıcısı sadece admin onayı ile oluşturulabilir. company_approved=true olmalıdır.');
+                }
+            } else {
+                // Company olmayan kullanıcılar için company_approved null veya false olmalı
+                if ($user->company_approved === true && $user->role !== 'company') {
+                    $user->company_approved = false;
+                }
+            }
+        });
+    }
 
     /**
      * The attributes that should be hidden for serialization.

@@ -65,11 +65,15 @@
             <div class="password-text">{{ $password }}</div>
         </div>
         
-        <p>Güvenliğiniz için lütfen ilk girişinizde şifrenizi değiştirin.</p>
+        @if($user->role === 'company')
+            <p>Firma hesabınız başarıyla onaylandı. Aşağıdaki bilgilerle giriş yapabilirsiniz.</p>
+            <p>Giriş yapmak için: <a href="{{ url('/company-portal') }}" style="color: #1173d4; font-weight: bold;">Firma Giriş Sayfası</a></p>
+        @else
+            <p>Güvenliğiniz için lütfen ilk girişinizde şifrenizi değiştirin.</p>
+            <p>Giriş yapmak için: <a href="{{ url('/login') }}" style="color: #1173d4;">Buraya tıklayın</a></p>
+        @endif
         
-        <p>Giriş yapmak için: <a href="{{ url('/login') }}" style="color: #1173d4;">Buraya tıklayın</a></p>
-        
-        <p>Bu şifre sadece ilk girişiniz için geçerlidir. Lütfen güvenliğiniz için şifrenizi değiştirin.</p>
+        <p><strong>Önemli:</strong> Bu şifre ile giriş yapabilirsiniz. Güvenliğiniz için şifrenizi düzenli olarak değiştirmenizi öneririz.</p>
     </div>
     
     <div class="footer">

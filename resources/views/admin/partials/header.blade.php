@@ -87,7 +87,7 @@
                 <span class="material-symbols-outlined">
                     workspace_premium
                 </span>
-                Sertifikalar
+                Yeni Sertifika Ekle
             </a>
             
             <!-- Badges menu - Same level as Certificates -->
@@ -95,7 +95,7 @@
                 <span class="material-symbols-outlined">
                     military_tech
                 </span>
-                Rozetler
+                Rozet Ekle
             </a>
             
             <!-- Partner Companies menu - Yeni eklenen -->

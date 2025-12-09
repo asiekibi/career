@@ -520,14 +520,16 @@ class CertificateController extends Controller
             }
         }
         
-        // Ad Soyad yazısı - "ğ" karakteri için MiddleAges_PERSONAL_USE, diğerleri için CloisterBlack
+        // Ad Soyad yazısı - "ğ" ve "ş" karakterleri için MiddleAges_PERSONAL_USE, diğerleri için CloisterBlack
         $pdf->SetTextColor(0, 0, 0);
         
-        // Metinde "ğ" karakteri var mı kontrol et
+        // Metinde "ğ" veya "ş" karakteri var mı kontrol et
         $hasG = (mb_strpos($userName, 'ğ') !== false || mb_strpos($userName, 'Ğ') !== false);
+        $hasS = (mb_strpos($userName, 'ş') !== false || mb_strpos($userName, 'Ş') !== false);
+        $hasTurkishSpecialChars = $hasG || $hasS;
         
-        // Font seçimi: "ğ" varsa MiddleAges_PERSONAL_USE, yoksa CloisterBlack
-        if ($hasG && $middleAgesFontName) {
+        // Font seçimi: "ğ" veya "ş" varsa MiddleAges_PERSONAL_USE, yoksa CloisterBlack
+        if ($hasTurkishSpecialChars && $middleAgesFontName) {
             $nameFontName = $middleAgesFontName;
         } else {
             $nameFontName = $cloisterFontName ? $cloisterFontName : $turkishFallbackFont;

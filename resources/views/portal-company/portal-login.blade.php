@@ -83,17 +83,53 @@
             <div class="w-full max-w-md space-y-8">
                 <div class="text-center">
                     <h1 class="text-4xl font-extrabold tracking-tight">Firma Girişi</h1>
-                    <p class="mt-4 text-lg text-gray-500 dark:text-gray-400">Öğrenci bilgilerini görüntülemek için öğrenci kayıt numarasını girin.</p>
+                    <p class="mt-4 text-lg text-gray-500 dark:text-gray-400">Firma hesabınıza giriş yapın</p>
                 </div>
                 
-                <form id="certificateForm" class="space-y-6">
+                <form action="{{ route('company-portal.login') }}" method="POST" class="space-y-6" id="loginForm">
+                    @csrf
                     <div class="space-y-4">
+                        <div>
+                            <label class="sr-only" for="email">Email</label>
+                            <input autocomplete="email" 
+                                id="email" 
+                                name="email" 
+                                type="email" 
+                                placeholder="Email adresi" 
+                                required
+                                value="{{ old('email') }}"
+                                class="w-full h-14 pl-4 pr-4 bg-background-light dark:bg-background-dark border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-primary focus:border-primary text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 @error('email') border-red-500 @enderror"/>
+                            @error('email')
+                                <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                            @enderror
+                        </div>
                         <div class="relative">
-                            <input id="registerNumber" class="w-full h-14 pl-4 pr-12 bg-background-light dark:bg-background-dark border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-primary focus:border-primary" placeholder="Öğrenci Kayıt Numarası" type="text" required/>
+                            <input autocomplete="current-password" 
+                                id="password" 
+                                name="password" 
+                                type="password" 
+                                placeholder="Şifre" 
+                                required
+                                class="w-full h-14 pl-4 pr-12 bg-background-light dark:bg-background-dark border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-primary focus:border-primary text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 @error('password') border-red-500 @enderror"/>
+                            <button type="button" 
+                                class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors duration-200"
+                                onclick="togglePassword()">
+                                <svg id="eye-icon" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                    <circle cx="12" cy="12" r="3"></circle>
+                                </svg>
+                                <svg id="eye-off-icon" class="h-5 w-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                                    <line x1="1" y1="1" x2="23" y2="23"></line>
+                                </svg>
+                            </button>
+                            @error('password')
+                                <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                            @enderror
                         </div>
                     </div>
                     <button type="submit" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-bold text-black bg-primary hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors">
-                        Sorgula
+                        Giriş Yap
                     </button>
                 </form>
                 
@@ -138,74 +174,28 @@
     </div>
 
     <script>
-        // certificate form submit
-        document.getElementById('certificateForm').addEventListener('submit', function(e) {
-            e.preventDefault();
+        function togglePassword() {
+            const passwordInput = document.getElementById('password');
+            const eyeIcon = document.getElementById('eye-icon');
+            const eyeOffIcon = document.getElementById('eye-off-icon');
             
-            const registerNumber = document.getElementById('registerNumber').value.trim();
-            const errorMessage = document.getElementById('errorMessage');
-            const successResult = document.getElementById('successResult');
-            
-            if (!registerNumber) {
-                errorMessage.querySelector('#errorTitle').textContent = 'Lütfen kayıt numarası girin.';
-                errorMessage.querySelector('#errorDescription').textContent = 'Öğrenci kayıt numarası gereklidir.';
-                errorMessage.classList.remove('hidden');
-                return;
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                eyeIcon.classList.add('hidden');
+                eyeOffIcon.classList.remove('hidden');
+            } else {
+                passwordInput.type = 'password';
+                eyeIcon.classList.remove('hidden');
+                eyeOffIcon.classList.add('hidden');
             }
-            
-            console.log('Form submitted with:', { registerNumber }); // Debug için
-            
-            // Loading göster
-            const submitBtn = this.querySelector('button[type="submit"]');
-            const originalText = submitBtn.textContent;
-            submitBtn.textContent = 'Sorgulanıyor...';
-            submitBtn.disabled = true;
-            
-            const url = '{{ route("company-portal.search") }}';
-            console.log('Request URL:', url); // Debug için
-            
-            fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify({
-                    register_number: registerNumber
-                })
-            })
-            .then(response => {
-                console.log('Response status:', response.status); // Debug için
-                return response.json();
-            })
-            .then(data => {
-                console.log('Response data:', data); // Debug için
-                if (data.success) {
-                    // Register numarası ile giriş yapıldıysa direkt main sayfasına yönlendir
-                    if (data.student) {
-                        // Başarılı giriş sonrası direkt main sayfasına yönlendir
-                        window.location.href = '{{ route("company-portal.main") }}';
-                    }
-                } else {
-                    successResult.classList.add('hidden');
-                    errorMessage.classList.remove('hidden');
-                    if (data.message) {
-                        errorMessage.querySelector('#errorTitle').textContent = data.message;
-                        errorMessage.querySelector('#errorDescription').textContent = 'Lütfen bilgilerinizi kontrol edip tekrar deneyin.';
-                    }
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                successResult.classList.add('hidden');
-                errorMessage.classList.remove('hidden');
-            })
-            .finally(() => {
-                // Loading remove
-                submitBtn.textContent = originalText;
-                submitBtn.disabled = false;
-            });
+        }
+
+        // Form submit loading state
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            const form = this;
+            const submitButton = form.querySelector('button[type="submit"]');
+            submitButton.disabled = true;
+            submitButton.textContent = 'Giriş yapılıyor...';
         });
     </script>
 </body>
