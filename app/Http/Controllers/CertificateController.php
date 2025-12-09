@@ -97,6 +97,102 @@ class CertificateController extends Controller
     }
 
     /**
+     * Show the form for editing the specified resource.
+     */
+    public function edit($id)
+    {
+        $certificate = Certificate::with('certificateEducations')->findOrFail($id);
+        return response()->json([
+            'id' => $certificate->id,
+            'certificate_name' => $certificate->certificate_name,
+            'type' => $certificate->type,
+            'template_path' => $certificate->template_path,
+            'certificateEducations' => $certificate->certificateEducations->map(function($education) {
+                return [
+                    'id' => $education->id,
+                    'course_name' => $education->course_name
+                ];
+            })
+        ]);
+    }
+
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(Request $request, $id)
+    {
+        $validator = Validator::make($request->all(), [
+            'certificate_name' => 'required|string|max:255',
+            'type' => 'required|in:ders,kurs',
+            'course' => 'array',
+            'template_file' => 'nullable|file|mimes:pdf|max:10240', // Max 10MB
+        ]);
+
+        if ($validator->fails()) {
+            return back()->withErrors($validator)->withInput();
+        }
+
+        $certificate = Certificate::findOrFail($id);
+        $templatePath = $certificate->template_path;
+
+        // Sertifika şablonu yükleme - PDF'i HTML'e çevir ve orijinal PDF'i de sakla
+        if ($request->hasFile('template_file')) {
+            $file = $request->file('template_file');
+            
+            // PDF dosyasını base64 encode et
+            $pdfContent = file_get_contents($file->getRealPath());
+            $base64Pdf = base64_encode($pdfContent);
+            
+            // HTML şablonu oluştur (PDF.js ile PDF görüntüleme)
+            $htmlContent = $this->convertPdfToHtml($base64Pdf, $file->getClientOriginalName());
+            
+            // Klasör yoksa oluştur
+            $templatesDir = storage_path('app/public/certificates/templates/');
+            if (!file_exists($templatesDir)) {
+                mkdir($templatesDir, 0755, true);
+            }
+            
+            // HTML dosyasını kaydet
+            $htmlFileName = time() . '_' . pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME) . '.html';
+            $htmlPath = $templatesDir . $htmlFileName;
+            file_put_contents($htmlPath, $htmlContent);
+            
+            // Orijinal PDF dosyasını da kaydet (indirme için)
+            $pdfFileName = time() . '_' . pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME) . '.pdf';
+            $pdfPath = $templatesDir . $pdfFileName;
+            file_put_contents($pdfPath, $pdfContent);
+            
+            $templatePath = 'storage/certificates/templates/' . $htmlFileName;
+        }
+
+        // Sertifikayı güncelle
+        $certificate->update([
+            'certificate_name' => $request->certificate_name,
+            'type' => $request->type,
+            'template_path' => $templatePath,
+        ]);
+
+        // Mevcut dersleri sil
+        $certificate->certificateEducations()->delete();
+
+        // Boş olmayan dersleri filtrele ve ekle
+        if ($request->has('course')) {
+            $validCourses = array_filter($request->course, function($courseName) {
+                return !empty(trim($courseName));
+            });
+
+            foreach ($validCourses as $courseName) {
+                CertificateEducation::create([
+                    'certificate_id' => $certificate->id,
+                    'course_name' => $courseName,
+                ]);
+            }
+        }
+
+        return redirect()->route('admin.certificates')->with('success', 'Sertifika başarıyla güncellendi!');
+    }
+
+    /**
      * get assign certificate
      */
     public function getAssignCertificate($id)
@@ -117,6 +213,7 @@ class CertificateController extends Controller
             'certificate_id' => 'required|exists:certificates,id',
             'certificate_code' => 'nullable|string|max:255|unique:user_certificates,certificate_code',
             'register_no' => 'nullable|string|max:255',
+            'password' => 'nullable|string|max:255',
             'content1' => 'nullable|string',
             'content2' => 'nullable|string',
             'score' => 'nullable|numeric|min:0',
@@ -148,6 +245,7 @@ class CertificateController extends Controller
             'certificate_id' => $request->certificate_id,
             'certificate_code' => $request->certificate_code,
             'register_no' => $request->register_no,
+            'password' => $request->password,
             'content1' => $request->content1,
             'content2' => $request->content2,
             'achievement_score' => $request->score ?? 0,
@@ -204,11 +302,6 @@ class CertificateController extends Controller
             $certificateName = strtolower($certificate->certificate_name ?? '');
             if (strpos($certificateName, 'kurs') !== false) {
                 $certificateType = 'kurs';
-                \Log::info('Certificate Type Override - Detected kurs from certificate_name', [
-                    'certificate_name' => $certificate->certificate_name,
-                    'original_type' => $certificate->type,
-                    'new_type' => $certificateType,
-                ]);
             }
         }
         
@@ -260,6 +353,14 @@ class CertificateController extends Controller
         // FPDI ile PDF oluştur
         $pdf = new Fpdi();
         
+        // UTF-8 encoding ayarları - Türkçe karakter desteği için
+        $pdf->setLanguageArray([
+            'a_meta_charset' => 'UTF-8',
+            'a_meta_dir' => 'ltr',
+            'a_meta_language' => 'tr',
+            'w_page' => 'sayfa'
+        ]);
+        
         // Template PDF'i ekle
         $pageCount = $pdf->setSourceFile($templatePath);
         $tplId = $pdf->importPage(1);
@@ -276,51 +377,57 @@ class CertificateController extends Controller
         
         $pdf->useTemplate($tplId, 0, 0, $size['width'], $size['height'], true);
         
-        // Kullanıcı adı soyadı (Türkçe karakter desteği ile)
-        $userName = $userCertificate->user->name . ' ' . $userCertificate->user->surname;
+        // Kullanıcı adı soyadı (Türkçe karakter desteği ile) - Sadece ilk harfler büyük (Title Case)
+        $userName = mb_convert_case($userCertificate->user->name . ' ' . $userCertificate->user->surname, MB_CASE_TITLE, 'UTF-8');
         
-        // UnifrakturMaguntia fontunu yükle (Register No için)
-        // TCPDF_FONTS static sınıfını kullan
-        $unifrakturFontName = null;
-        $unifrakturFontPaths = [
-            public_path('fonts/UnifrakturMaguntia-Regular.ttf'),
-            public_path('fonts/UnifrakturMaguntia.ttf'),
+        // CloisterBlack fontunu yükle (Old English stili) - İstediğiniz font
+        $cloisterFontName = null;
+        $cloisterFontPaths = [
+            public_path('fonts/cloister-black-font/CloisterBlack.ttf'),
+            public_path('fonts/CloisterBlack.ttf'),
+            public_path('fonts/cloister-black-font/CloisterBlackLight-axjg.ttf'),
+            public_path('fonts/CloisterBlackLight-axjg.ttf'),
         ];
         
-        foreach ($unifrakturFontPaths as $fontPath) {
+        foreach ($cloisterFontPaths as $fontPath) {
             if (file_exists($fontPath)) {
                 try {
-                    $unifrakturFontName = \TCPDF_FONTS::addTTFfont($fontPath, 'TrueTypeUnicode', '', 96);
-                    if ($unifrakturFontName) {
+                    // TrueTypeUnicode ile font yükle - Türkçe karakter desteği için
+                    $cloisterFontName = \TCPDF_FONTS::addTTFfont($fontPath, 'TrueTypeUnicode', '', 32);
+                    if ($cloisterFontName) {
+                        // Font yüklendi
                         break; // Font başarıyla yüklendi
                     }
                 } catch (\Exception $e) {
-                    continue; // Bu dosya yüklenemedi, bir sonrakini dene
+                     continue; // Bu dosya yüklenemedi, bir sonrakini dene
                 }
             }
         }
         
-        // Playwrite USA Traditional Guides fontunu yükle (kullanıcı adı için)
-        $playwriteFontName = null;
-        $fontPaths = [
-            public_path('fonts/PlaywriteUSATraditionalGuides-Regular.ttf'),
-            public_path('fonts/PlaywriteUSATraditionalGuides.ttf'),
-            public_path('fonts/Playwrite-USA-Traditional-Guides.ttf'),
-            public_path('fonts/PlaywriteUSATraditionalGuides-Regular.otf'),
+        // MiddleAges_PERSONAL_USE fontunu yükle - "ğ" karakteri için
+        $middleAgesFontName = null;
+        $middleAgesFontPaths = [
+            public_path('fonts/MiddleAges_PERSONAL_USE/MiddleAges_PERSONAL_USE.ttf'),
+            public_path('fonts/MiddleAges_PERSONAL_USE.ttf'),
         ];
         
-        foreach ($fontPaths as $fontPath) {
+        foreach ($middleAgesFontPaths as $fontPath) {
             if (file_exists($fontPath)) {
                 try {
-                    $playwriteFontName = \TCPDF_FONTS::addTTFfont($fontPath, 'TrueTypeUnicode', '', 96);
-                    if ($playwriteFontName) {
-                        break; // Font başarıyla yüklendi
+                    $middleAgesFontName = \TCPDF_FONTS::addTTFfont($fontPath, 'TrueTypeUnicode', '', 32);
+                    if ($middleAgesFontName) {
+                        break;
                     }
                 } catch (\Exception $e) {
-                    continue; // Bu dosya yüklenemedi, bir sonrakini dene
+                     continue;
                 }
             }
         }
+        
+        // Türkçe karakterler için fallback font (DejaVu Serif)
+        $turkishFallbackFont = 'dejavuserif';
+        
+        
         
         // Sağ üste Register No ve içerik ekle (siyah renkte)
         $pdf->SetTextColor(0, 0, 0); // Siyah renk
@@ -334,11 +441,6 @@ class CertificateController extends Controller
         $content1 = $userCertificate->content1 ?? $certificate->content ?? '16 Hours Theoretical';
         $content2 = $userCertificate->content2 ?? '';
         
-        \Log::info('Certificate Download - Method: downloadCertificate', [
-            'certificate_id' => $certificate->id,
-            'certificate_type' => $certificateType,
-            'certificate_name' => $certificate->certificate_name,
-        ]);
         
         if ($certificateType === 'kurs') {
             $registerY = 25; // Template içindeki beyaz alanın başlangıcından 25mm aşağıda (daha aşağı)
@@ -348,64 +450,48 @@ class CertificateController extends Controller
             $userNameYPercentage = null; // Kurs için yüzde kullanmayacağız
             $userNameYDefault = null; // Kurs için varsayılan değer kullanmayacağız
             
-            // LOG: Kurs tipi için kullanılan değerler
-            \Log::info('Certificate Download - Kurs Type Values', [
-                'registerY' => $registerY,
-                'content1Y' => $content1Y,
-                'content2Y' => $content2Y,
-                'tarihY' => $tarihY,
-                'template_path' => $templatePath,
-            ]);
         } else {
             // Ders sertifikaları için mevcut pozisyonlar
-            $registerY = 30; // Üstten 30mm aşağıda
+            $registerY = 25; // Üstten 25mm aşağıda (30 -> 25, daha yukarı)
             $content1Y = $registerY + 5; // Register No'nun 5mm altında
             $content2Y = $content1Y + 5; // İçerik 1'in 5mm altında
             $tarihY = $content2Y + 5; // İçerik 2'nin 5mm altında
             $userNameYPercentage = 0.48; // Sayfanın %48'i kadar yukarıdan
             $userNameYDefault = 145; // Varsayılan değer
             
-            // LOG: Ders tipi için kullanılan değerler
-            \Log::info('Certificate Download - Ders Type Values', [
-                'registerY' => $registerY,
-                'content1Y' => $content1Y,
-                'content2Y' => $content2Y,
-                'tarihY' => $tarihY,
-            ]);
         }
         
-        // Register No: yazısı - UnifrakturMaguntia fontu kullan
-        if ($unifrakturFontName) {
-            $pdf->SetFont($unifrakturFontName, '', 12);
+        // Register No: yazısı - CloisterBlack fontu kullan
+        $registerFontName = $cloisterFontName ? $cloisterFontName : $turkishFallbackFont;
+        $pdf->SetFont($registerFontName, '', 12);
+        // Sağdan mesafe - sertifika tipine göre ayarla
+        if ($certificateType === 'ders') {
+            $rightMargin = 38; // Ders tipi için sağdan 38mm mesafe
+            $contentRightMargin = 42; // İçerik yazıları için biraz daha fazla mesafe (45 -> 42, biraz sola)
         } else {
-            $pdf->SetFont('dejavuserif', '', 12); // Fallback font
+            $rightMargin = 30;
+            $contentRightMargin = 34; // İçerik yazıları için biraz daha fazla mesafe (37 -> 34, biraz sola)
         }
-        // Sağdan mesafe - sağa yaklaştırmak için mesafeyi azalt
-        $rightMargin = 30; // Sağdan 30mm mesafe (50 -> 30, daha sağa)
-        $registerX = $size['width'] - $rightMargin; // Sağdan mesafeli X pozisyonu
-        $cellWidth = 70; // Cell genişliği (60 -> 70, daha geniş alan)
+        $registerX = $size['width'] - $rightMargin;
+        $contentX = $size['width'] - $contentRightMargin; // İçerik yazıları için ayrı X pozisyonu
+        $cellWidth = 70;
         
-        // LOG: Register No pozisyonu
-        \Log::info('Certificate Download - Register No Position', [
-            'registerX' => $registerX - $cellWidth,
-            'registerY' => $registerY,
-            'cellWidth' => $cellWidth,
-            'size_width' => $size['width'],
-            'size_height' => $size['height'] ?? 'N/A',
-        ]);
         
+        // Register No yazısı - Türkçe karakter desteği için
         $pdf->SetXY($registerX - $cellWidth, $registerY);
-        $pdf->Cell($cellWidth, 10, 'Register No: ' . $registerNo, 0, 0, 'R');
+        $registerText = 'Register No: ' . $registerNo;
+        // Cell() metodunu kullan ama font'un Türkçe karakter desteği olduğundan emin ol
+        $pdf->Cell($cellWidth, 10, $registerText, 0, 0, 'R', false, '', 0, false, 'T', 'C');
         
-        // İçerik 1 yazısı (Register No'nun altında)
+        // İçerik 1 yazısı (Register No'nun altında) - Biraz daha sağa mesafe
         $pdf->SetFont('dejavuserif', 'I', 8); // Küçük italik font (10 -> 8, italik)
-        $pdf->SetXY($registerX - $cellWidth, $content1Y);
+        $pdf->SetXY($contentX - $cellWidth, $content1Y);
         $pdf->Cell($cellWidth, 10, $content1, 0, 0, 'R');
         
-        // İçerik 2 yazısı (İçerik 1'in altında)
+        // İçerik 2 yazısı (İçerik 1'in altında) - Biraz daha sağa mesafe
         if (!empty($content2)) {
             $pdf->SetFont('dejavuserif', 'I', 8); // Küçük italik font
-            $pdf->SetXY($registerX - $cellWidth, $content2Y);
+            $pdf->SetXY($contentX - $cellWidth, $content2Y);
             $pdf->Cell($cellWidth, 10, $content2, 0, 0, 'R');
         }
         
@@ -413,57 +499,64 @@ class CertificateController extends Controller
         
         $pdf->SetTextColor(0, 0, 0); // Siyah renk
         
-        if ($playwriteFontName) {
-            $pdf->SetFont($playwriteFontName, '', 32);
-        } else {
-            $pdf->SetFont('dejavuserif', 'I', 32);
-        }
+        // Ad Soyad için font boyutu - Sertifika tipine göre (küçültüldü)
+        $fontSize = ($certificateType === 'ders') ? 39 : 40; // Ders: 45->38->39, Kurs: 40->34->36->37->38->39->40 (bir tık daha büyütüldü)
         
-        // PDF boyutuna göre orantılı Y koordinatı hesapla
-        $x = 0; // X = 0, Cell ile ortalanacak
+        $x = 0;
         
-        // PDF yüksekliğine göre orantılı Y koordinatı - sertifika tipine göre
         if ($certificateType === 'kurs') {
-            // Kurs sertifikaları için: sayfa yüksekliğinden Cell yüksekliği ve margin çıkararak biraz aşağıya yerleştir
-            // Cell yüksekliği 10mm, yazının alt kenarının sayfanın altından belirli bir mesafe yukarıda olması için
-            $cellHeight = 10; // Cell yüksekliği
-            $bottomMargin = 115; // Sayfanın altından margin (120 -> 115, çok az daha aşağıya iner)
+            $cellHeight = 10;
+            $bottomMargin = 118; // 117 -> 118 (çok az daha yukarıya taşımak için artırıldı)
             if (isset($size['height']) && $size['height'] > 0) {
-                $y = $size['height'] - $cellHeight - $bottomMargin; // Yazının alt kenarı sayfanın altından 115mm yukarıda (biraz daha aşağı)
+                $y = $size['height'] - $cellHeight - $bottomMargin;
             } else {
-                $y = 172; // Varsayılan değer (A4 için yaklaşık 297mm yükseklik, 297 - 10 - 115 = 172)
+                $y = 150; // 151 -> 150 (çok az daha yukarıya taşımak için azaltıldı)
             }
         } else {
-            // Ders sertifikaları için yüzde hesaplaması - daha yukarı pozisyon
             if (isset($size['height']) && $size['height'] > 0) {
-                $y = $size['height'] * 0.48; // Sayfanın %48'i kadar yukarıdan (0.60 -> 0.48, daha yukarı)
+                $y = $size['height'] * 0.46; // 0.48 -> 0.46 (daha yukarı)
             } else {
-                $y = 143; // Varsayılan değer (A4 için yaklaşık 297mm yükseklik, %48 = 142.56)
+                $y = 138; // 143 -> 138 (daha yukarı)
             }
         }
         
-        $pdf->SetXY($x, $y);
-        // Türkçe karakter desteği için UTF-8 string kullan
-        $pdf->Cell($size['width'], 10, $userName, 0, 1, 'C');
+        // Ad Soyad yazısı - "ğ" karakteri için MiddleAges_PERSONAL_USE, diğerleri için CloisterBlack
+        $pdf->SetTextColor(0, 0, 0);
         
-        // PDF metadata (downloadPirusApp metodundaki gibi)
+        // Metinde "ğ" karakteri var mı kontrol et
+        $hasG = (mb_strpos($userName, 'ğ') !== false || mb_strpos($userName, 'Ğ') !== false);
+        
+        // Font seçimi: "ğ" varsa MiddleAges_PERSONAL_USE, yoksa CloisterBlack
+        if ($hasG && $middleAgesFontName) {
+            $nameFontName = $middleAgesFontName;
+        } else {
+            $nameFontName = $cloisterFontName ? $cloisterFontName : $turkishFallbackFont;
+        }
+        
+        $pdf->SetFont($nameFontName, '', $fontSize);
+        
+        // Metni ortalamak için Write() kullan - Unicode karakterleri daha iyi destekler
+        // Önce metnin genişliğini hesapla
+        $textWidth = $pdf->GetStringWidth($userName);
+        $startX = ($size['width'] - $textWidth) / 2;
+        $pdf->SetXY($startX, $y);
+        $pdf->Write(10, $userName, '', 0, '', false, 0, false, false, 0);
+        
         $pdf->SetCreator('Kariyer Sistemi');
         $pdf->SetAuthor('Kariyer Sistemi');
         $pdf->SetTitle($certificate->certificate_name ?? 'Sertifika');
         $pdf->SetSubject('Sertifika');
         
-        // PDF şifre koruması ayarları (template'i ekledikten sonra)
-        $password = '12345'; // Şifre
+        // PDF şifre koruması - Her iki sertifika tipi (ders ve kurs) için de uygulanır
+        $password = $userCertificate->password ?? '12345';
         $pdf->SetProtection(
             ['print', 'modify', 'copy', 'annot-forms'],
             $password,
             $password
         );
         
-        // PDF'i output olarak döndür
         $pdfContent = $pdf->Output('', 'S');
         
-        // Dosya adını oluştur (downloadPirusApp metodundaki gibi basit)
         $fileName = 'Sertifika_' . preg_replace('/[^a-zA-Z0-9_\-]/', '_', $userCertificate->user->name) . '_' . preg_replace('/[^a-zA-Z0-9_\-]/', '_', $userCertificate->user->surname) . '.pdf';
         
         return response($pdfContent, 200)

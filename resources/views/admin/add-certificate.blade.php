@@ -37,7 +37,14 @@
                     <select class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary dark:focus:border-primary" id="certificate_id" name="certificate_id" required>
                         <option value="">Sertifika seçiniz...</option>
                         @foreach($certificates as $certificate)
-                            <option value="{{ $certificate->id }}">{{ $certificate->certificate_name }}</option>
+                            <option value="{{ $certificate->id }}">
+                                {{ $certificate->certificate_name }} - 
+                                @if($certificate->type == 'kurs')
+                                    Klişesiz Sertifika
+                                @else
+                                    Klişeli Sertifika
+                                @endif
+                            </option>
                         @endforeach
                     </select>
                 </div>
@@ -83,6 +90,25 @@
                            placeholder="Numara girin" 
                            type="text"/>
                 </div>
+                <div>
+                    <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white" for="password">
+                        <span class="inline-block mr-2">Şifre:</span>
+                    </label>
+                    <div class="flex gap-2">
+                        <input class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary dark:focus:border-primary" 
+                               id="password" 
+                               name="password"
+                               placeholder="6 haneli şifre" 
+                               type="text"
+                               maxlength="6"
+                               readonly/>
+                        <button type="button" 
+                                onclick="generatePassword()"
+                                class="text-white bg-primary hover:bg-primary/90 focus:ring-4 focus:outline-none focus:ring-primary/50 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary dark:hover:bg-primary/90 dark:focus:ring-primary/80 whitespace-nowrap">
+                            Şifre Üret
+                        </button>
+                    </div>
+                </div>
             </div>
             <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
@@ -119,6 +145,7 @@
                             <th class="px-6 py-3" scope="col">Sertifika Adı</th>
                             <th class="px-6 py-3" scope="col">Sertifika Kodu</th>
                             <th class="px-6 py-3" scope="col">Register No</th>
+                            <th class="px-6 py-3" scope="col">Şifre</th>
                             <th class="px-6 py-3" scope="col">İçerik 1</th>
                             <th class="px-6 py-3" scope="col">İçerik 2</th>
                             <th class="px-6 py-3" scope="col">Veren Kurum</th>
@@ -136,6 +163,7 @@
                                 </th>
                                 <td class="px-6 py-4">{{ $userCertificate->certificate_code ?? 'Belirtilmemiş' }}</td>
                                 <td class="px-6 py-4">{{ $userCertificate->register_no ?? 'Belirtilmemiş' }}</td>
+                                <td class="px-6 py-4">{{ $userCertificate->password ?? 'Belirtilmemiş' }}</td>
                                 <td class="px-6 py-4">{{ $userCertificate->content1 ?? 'Belirtilmemiş' }}</td>
                                 <td class="px-6 py-4">{{ $userCertificate->content2 ?? 'Belirtilmemiş' }}</td>
                                 <td class="px-6 py-4">{{ $userCertificate->issuing_institution ?? 'Belirtilmemiş' }}</td>
@@ -181,7 +209,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="10" class="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
+                                <td colspan="11" class="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
                                     Henüz atanmış sertifika bulunmuyor.
                                 </td>
                             </tr>
@@ -240,6 +268,12 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
+// Generate 6-digit random password
+function generatePassword() {
+    const password = Math.floor(100000 + Math.random() * 900000).toString();
+    document.getElementById('password').value = password;
+}
 
 // SweetAlert2 with certificate delete confirmation
 function confirmDeleteCertificate(certificateId, userName, userSurname) {

@@ -113,7 +113,7 @@
                     <label for="city-select" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         İl Seçin
                     </label>
-                    <select id="city-select" name="city_id" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-800 dark:text-white @error('city_id') border-red-500 @enderror" required>
+                    <select id="city-select" name="city_id" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-800 dark:text-white @error('city_id') border-red-500 @enderror">
                         <option value="">İl Seçin</option>
                     </select>
                     @error('city_id')
@@ -126,7 +126,7 @@
                     <label for="district-select" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         İlçe Seçin
                     </label>
-                    <select id="district-select" name="district_id" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-800 dark:text-white @error('district_id') border-red-500 @enderror" required>
+                    <select id="district-select" name="district_id" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-800 dark:text-white @error('district_id') border-red-500 @enderror">
                         <option value="">İlçe Seçin</option>
                     </select>
                     @error('district_id')

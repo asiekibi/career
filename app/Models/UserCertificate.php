@@ -21,6 +21,7 @@ class UserCertificate extends Model
         'user_id',
         'certificate_code',
         'register_no',
+        'password',
         'content1',
         'content2',
         'achievement_score',

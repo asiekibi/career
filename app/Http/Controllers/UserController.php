@@ -150,10 +150,13 @@ class UserController extends Controller
             $updateData['country_id'] = $request->country_id;
         }
         
-        // Sadece district_id varsa location_id ve district_id'yi güncelle
+        // district_id varsa location_id ve district_id'yi güncelle, yoksa null yap
         if ($request->district_id) {
             $updateData['location_id'] = $request->district_id;
             $updateData['district_id'] = $request->district_id;
+        } else {
+            $updateData['location_id'] = null;
+            $updateData['district_id'] = null;
         }
         
         
@@ -173,8 +176,8 @@ class UserController extends Controller
             'gsm' => 'required|string|max:20',
             'birth_date' => 'required|date',
             'country_id' => 'required|integer|exists:countries,id',
-            'city_id' => 'required|string',
-            'district_id' => 'required|string',
+            'city_id' => 'nullable|string',
+            'district_id' => 'nullable|string',
             'contact_info' => 'required|boolean',
         ], [
             'full_name.required' => 'Ad Soyad gereklidir.',
@@ -185,8 +188,6 @@ class UserController extends Controller
             'birth_date.required' => 'Doğum tarihi gereklidir.',
             'country_id.required' => 'Ülke seçimi gereklidir.',
             'country_id.exists' => 'Seçilen ülke geçersiz.',
-            'city_id.required' => 'İl seçimi gereklidir.',
-            'district_id.required' => 'İlçe seçimi gereklidir.',
             'contact_info.required' => 'İletişim izni seçimi gereklidir.',
         ]);
     
@@ -202,7 +203,7 @@ class UserController extends Controller
         $registerNumber = $this->generateUniqueRegisterNumber();
     
         // Kullanıcı oluştur
-        $user = User::create([
+        $userData = [
             'name' => $name,
             'surname' => $surname,
             'email' => $request->email,
@@ -213,13 +214,19 @@ class UserController extends Controller
             'register_number' => $registerNumber,
             'point' => '0',
             'country_id' => $request->country_id,
-            'location_id' => $request->district_id,
-            'district_id' => $request->district_id,
             'contact_info' => $request->contact_info,
             'profile_photo_url' => '',
             'role' => 'user',
             'is_active' => true,
-        ]);
+        ];
+        
+        // Sadece district_id varsa location_id ve district_id'yi ekle
+        if ($request->district_id) {
+            $userData['location_id'] = $request->district_id;
+            $userData['district_id'] = $request->district_id;
+        }
+        
+        $user = User::create($userData);
     
         // Email gönder
         try {
