@@ -28,3 +28,9 @@ class JobListingSeeder extends Seeder
 
 
 
+
+
+
+
+
+

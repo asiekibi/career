@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use App\Models\UserCertificate;
 use App\Models\User;
 use App\Models\Certificate;
+use App\Models\Country;
+use App\Models\Location;
 use Illuminate\View\View;
 use App\Models\PartnerCompany;
 use App\Models\CompanyRequest;
@@ -13,14 +15,6 @@ use Illuminate\Support\Facades\Auth;
 
 class PortalCompanyController extends Controller
 {
-    /**
-     * Open Portal login
-     */
-    public function showPortalLogin(): View
-    {
-        return view('portal-company.portal-login');
-    }
-
     /**
      * Company login - Email ve şifre ile normal auth girişi
      */
@@ -136,14 +130,22 @@ class PortalCompanyController extends Controller
             
             $users = User::where('role', 'user')
                 ->whereNull('deleted_at')
-                ->with(['userBadges.badge', 'cvs', 'userCertificates.certificate'])
+                ->with(['userBadges.badge', 'cvs', 'userCertificates.certificate', 'country', 'location.country'])
                 ->orderBy('name', 'asc')
                 ->get();
             
             // Tüm sertifikaları filtreleme için getir
             $certificates = Certificate::orderBy('certificate_name', 'asc')->get();
             
-            return view('portal-company.main', compact('users', 'certificates', 'companyName', 'isCompanyAuth', 'loginType'));
+            // Tüm ülkeleri filtreleme için getir
+            $countries = Country::orderBy('name', 'asc')->get();
+            
+            // Tüm illeri filtreleme için getir (parent_id = 0 olanlar)
+            $locations = Location::where('parent_id', 0)
+                ->orderBy('location', 'asc')
+                ->get();
+            
+            return view('portal-company.main', compact('users', 'certificates', 'countries', 'locations', 'companyName', 'isCompanyAuth', 'loginType'));
         }
         
         $studentId = session('student_id');
@@ -159,8 +161,8 @@ class PortalCompanyController extends Controller
             return view('portal-company.main', compact('student', 'loginType', 'companyName', 'isCompanyAuth'));
         }
         
-        // Hiç giriş yapılmamışsa login sayfasına yönlendir
-        return redirect()->route('company-portal-login');
+        // 
+        return redirect()->route('login');
     }
 
     /**

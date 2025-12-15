@@ -39,6 +39,9 @@ class UserController extends Controller
         $abilities = $user->abilities()->get();
         $languages = $user->languages()->get();
         
+        // userCertificates'ı certificateLessons ile birlikte eager load et
+        $user->load(['userCertificates.certificate.certificateEducations', 'userCertificates.certificateLessons.certificateEducation']);
+        
         return view('user.main', compact('user', 'userCvs', 'userBadges', 'experiences', 'educations', 'abilities', 'languages'));
     }
 
@@ -558,7 +561,8 @@ class UserController extends Controller
         $student = User::where('role', 'user')
             ->with([
                 'userBadges.badge', 
-                'userCertificates.certificate', 
+                'userCertificates.certificate.certificateEducations', 
+                'userCertificates.certificateLessons.certificateEducation',
                 'location', 
                 'cvs.experiences', 
                 'cvs.educations', 

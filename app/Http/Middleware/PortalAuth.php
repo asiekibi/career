@@ -14,7 +14,6 @@ class PortalAuth
         $allowedRoutes = [
             'portal-login',
             'portal.search',
-            'company-portal-login',
             'company-portal.login',
             'company-portal.search'
         ];
@@ -28,7 +27,7 @@ class PortalAuth
                 $hasSession = session('company_id') || session('student_id');
                 
                 if (!$isAuthenticated && !$hasSession) {
-                    return redirect()->route('company-portal-login');
+                    return redirect()->route('login');
                 }
             } elseif ($request->is('student-portal*')) {
                 if (!session('student_id')) {

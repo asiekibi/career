@@ -1,7 +1,7 @@
 @include('portal-user.partials.header')
 
 <!-- main content -->
-<main class="flex-1 p-4 lg:p-8">
+<main class="flex-1 p-4 lg:p-8 max-w-7xl mx-auto w-full">
     <div class="bg-white dark:bg-background-dark rounded-xl shadow-sm">
         <div class="p-4 lg:p-6 border-b border-gray-200 dark:border-gray-800">
             <!-- title -->
@@ -229,9 +229,62 @@
                 </div>
             @endif
 
-            @if($student->userCertificates->count() > 0)
+            <!-- Sorgulanan Sertifika -->
+            @if($searchedCertificate)
                 <div class="mt-8 lg:mt-10">
-                    <h4 class="text-lg lg:text-xl font-bold text-gray-900 dark:text-white mb-4">Sertifikalar</h4>
+                    <h4 class="text-lg lg:text-xl font-bold text-gray-900 dark:text-white mb-4">Sorguladığınız Sertifika</h4>
+                    <div class="bg-white dark:bg-background-dark/50 rounded-lg shadow-sm border border-primary/20">
+                        <div class="bg-primary/10 dark:bg-primary/20 p-4 border-b border-primary/20 rounded-t-lg">
+                            <h5 class="font-semibold text-gray-900 dark:text-white">{{ $searchedCertificate->certificate->certificate_name ?? 'Bilinmeyen Sertifika' }}</h5>
+                        </div>
+                        <div class="p-4 lg:p-6">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Sertifika Kodu:</span>
+                                    <p class="text-gray-900 dark:text-white font-semibold mt-1">{{ $searchedCertificate->certificate_code ?? 'Belirtilmemiş' }}</p>
+                                </div>
+                                @if($searchedCertificate->register_no)
+                                <div>
+                                    <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Register No:</span>
+                                    <p class="text-gray-900 dark:text-white font-semibold mt-1">{{ $searchedCertificate->register_no }}</p>
+                                </div>
+                                @endif
+                                @if($searchedCertificate->acquisition_date)
+                                <div>
+                                    <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Veriliş Tarihi:</span>
+                                    <p class="text-gray-900 dark:text-white font-semibold mt-1">{{ \Carbon\Carbon::parse($searchedCertificate->acquisition_date)->format('d.m.Y') }}</p>
+                                </div>
+                                @endif
+                                @if($searchedCertificate->achievement_score)
+                                <div>
+                                    <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Puan:</span>
+                                    <p class="text-gray-900 dark:text-white font-semibold mt-1">{{ $searchedCertificate->achievement_score }}</p>
+                                </div>
+                                @endif
+                                @if($searchedCertificate->issuing_institution)
+                                <div class="md:col-span-2">
+                                    <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Veren Kurum:</span>
+                                    <p class="text-gray-900 dark:text-white font-semibold mt-1">{{ $searchedCertificate->issuing_institution }}</p>
+                                </div>
+                                @endif
+                            </div>
+                            <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-600">
+                                <a href="{{ route('certificate.download', $searchedCertificate->id) }}" 
+                                   target="_blank"
+                                   class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-primary hover:bg-primary/90 rounded-lg transition-colors">
+                                    <span class="material-symbols-outlined text-lg">download</span>
+                                    <span>İndir</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            @endif
+
+            <!-- Diğer Sertifikalar -->
+            @if($otherCertificates && $otherCertificates->count() > 0)
+                <div class="mt-8 lg:mt-10">
+                    <h4 class="text-lg lg:text-xl font-bold text-gray-900 dark:text-white mb-4">Diğer Sertifikalar</h4>
                     
                     <!-- Desktop Table (Hidden on Mobile) -->
                     <div class="hidden lg:block overflow-x-auto">
@@ -242,10 +295,11 @@
                                     <th class="px-6 py-3" scope="col">Kodu</th>
                                     <th class="px-6 py-3" scope="col">Derecesi</th>
                                     <th class="px-6 py-3" scope="col">Kurum</th>
+                                    <th class="px-6 py-3" scope="col">İşlemler</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach($student->userCertificates as $userCertificate)
+                                @foreach($otherCertificates as $userCertificate)
                                     <tr class="bg-white border-b dark:bg-background-dark dark:border-gray-700">
                                         <th class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white" scope="row">
                                             {{ $userCertificate->certificate->certificate_name ?? 'Sertifika adı bulunamadı' }}
@@ -253,6 +307,14 @@
                                         <td class="px-6 py-4">{{ $userCertificate->certificate_code ?? 'Belirtilmemiş' }}</td>
                                         <td class="px-6 py-4">{{ $userCertificate->achievement_score ?? 'Belirtilmemiş' }}</td>
                                         <td class="px-6 py-4">{{ $userCertificate->issuing_institution ?? 'Belirtilmemiş' }}</td>
+                                        <td class="px-6 py-4">
+                                            <a href="{{ route('certificate.download', $userCertificate->id) }}" 
+                                               target="_blank"
+                                               class="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-white bg-primary hover:bg-primary/90 rounded-lg transition-colors">
+                                                <span class="material-symbols-outlined text-lg">download</span>
+                                                <span>İndir</span>
+                                            </a>
+                                        </td>
                                     </tr>
                                 @endforeach
                             </tbody>
@@ -261,9 +323,9 @@
 
                     <!-- Mobile Cards (Visible on Mobile) -->
                     <div class="lg:hidden space-y-4">
-                        @foreach($student->userCertificates as $userCertificate)
+                        @foreach($otherCertificates as $userCertificate)
                             <div class="bg-white dark:bg-background-dark/50 rounded-lg shadow-sm p-4 border border-gray-200 dark:border-gray-700">
-                                <div class="space-y-2">
+                                <div class="space-y-3">
                                     <div>
                                         <span class="text-gray-500 dark:text-gray-400 text-sm">Sertifika Adı:</span>
                                         <p class="text-gray-900 dark:text-white font-medium">{{ $userCertificate->certificate->certificate_name ?? 'Sertifika adı bulunamadı' }}</p>
@@ -278,9 +340,19 @@
                                             <p class="text-gray-900 dark:text-white">{{ $userCertificate->achievement_score ?? 'Belirtilmemiş' }}</p>
                                         </div>
                                     </div>
+                                    @if($userCertificate->issuing_institution)
                                     <div>
                                         <span class="text-gray-500 dark:text-gray-400 text-sm">Kurum:</span>
-                                        <p class="text-gray-900 dark:text-white">{{ $userCertificate->issuing_institution ?? 'Belirtilmemiş' }}</p>
+                                        <p class="text-gray-900 dark:text-white">{{ $userCertificate->issuing_institution }}</p>
+                                    </div>
+                                    @endif
+                                    <div class="pt-2 border-t border-gray-200 dark:border-gray-600">
+                                        <a href="{{ route('certificate.download', $userCertificate->id) }}" 
+                                           target="_blank"
+                                           class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-primary hover:bg-primary/90 rounded-lg transition-colors w-full justify-center">
+                                            <span class="material-symbols-outlined text-lg">download</span>
+                                            <span>İndir</span>
+                                        </a>
                                     </div>
                                 </div>
                             </div>

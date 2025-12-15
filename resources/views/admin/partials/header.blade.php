@@ -5,6 +5,7 @@
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Admin Panel</title>
+    <link rel="icon" type="image/png" href="{{ asset('logo/logo.png') }}"/>
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <link href="https://fonts.googleapis.com" rel="preconnect"/>
     <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
@@ -47,7 +48,8 @@
 
     <!-- left panel - Desktop normal, mobile hamburger menu -->
     <aside id="sidebar" class="w-64 bg-white dark:bg-background-dark/50 border-r border-background-light dark:border-background-dark/70 flex flex-col fixed lg:static inset-y-0 left-0 z-50 transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out">
-        <div class="p-6">
+        <div class="p-6 flex items-center gap-3">
+            <img src="{{ asset('logo/logo.png') }}" alt="Logo" class="h-8 w-auto"/>
             <h1 class="text-xl font-bold text-gray-800 dark:text-white">Yönetim Paneli</h1>
         </div>
 
@@ -79,7 +81,7 @@
                 <span class="material-symbols-outlined">
                     description
                 </span>
-                CV'ler
+                Sertifika ve Rozet Atama
             </a>
             
             <!-- Certificates menu - Same level as Certificates -->
@@ -145,7 +147,7 @@
                 @if(request()->routeIs('admin.students'))
                     Öğrenciler
                 @elseif(request()->routeIs('admin.cvs'))
-                    CV'ler
+                    Sertifika ve Rozet Atama
                 @elseif(request()->routeIs('admin.certificates'))
                     Sertifikalar
                 @elseif(request()->routeIs('admin.badges'))

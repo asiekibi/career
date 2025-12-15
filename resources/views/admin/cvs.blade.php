@@ -3,7 +3,7 @@
 <!-- main content -->
 <main class="flex-1 p-4 lg:p-8">
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 lg:mb-8">
-        <h2 class="text-2xl lg:text-3xl font-bold text-gray-800 dark:text-white">CV'ler</h2>
+        <h2 class="text-2xl lg:text-3xl font-bold text-gray-800 dark:text-white">Sertifika ve Rozet Atama</h2>
         <!-- Search input -->
         <div class="relative w-full sm:w-auto">
             <input type="text" 

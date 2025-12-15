@@ -39,8 +39,9 @@
                            id="birth_date" 
                            name="birth_date" 
                            value="{{ old('birth_date', isset($user) && $user->birth_date ? $user->birth_date->format('Y-m-d') : '') }}" 
+                           placeholder="gg.aa.yyyy"
                            required="" 
-                           type="date"/>
+                           type="text"/>
                     @error('birth_date')
                         <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                     @enderror
@@ -166,6 +167,13 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
 <!-- Toastr JS -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+
+<!-- Flatpickr CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<!-- Flatpickr JS -->
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<!-- Flatpickr Turkish Locale -->
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/tr.js"></script>
 
 
 <script>
@@ -314,6 +322,65 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             })
             .catch(error => console.error('Error:', error));
+    }
+
+    // Flatpickr date picker initialization - Türkçe format (gün.ay.yıl)
+    const birthDateInput = document.getElementById('birth_date');
+    let birthDatePicker = null;
+    if (birthDateInput) {
+        birthDatePicker = flatpickr(birthDateInput, {
+            locale: "tr",
+            dateFormat: "Y-m-d", // Form için YYYY-MM-DD formatı
+            altInput: false, // Tek input kullan, altInput kullanma
+            allowInput: true,
+            placeholder: "gg.aa.yyyy",
+            parseDate: (datestr, format) => {
+                // Türkçe formatı parse et (gün.ay.yıl)
+                const parts = datestr.split('.');
+                if (parts.length === 3) {
+                    const day = parseInt(parts[0], 10);
+                    const month = parseInt(parts[1], 10) - 1; // JavaScript months are 0-indexed
+                    const year = parseInt(parts[2], 10);
+                    return new Date(year, month, day);
+                }
+                return null;
+            },
+            onChange: function(selectedDates, dateStr, instance) {
+                // Seçilen tarihi gün.ay.yıl formatında göster
+                if (selectedDates.length > 0) {
+                    const date = selectedDates[0];
+                    const day = String(date.getDate()).padStart(2, '0');
+                    const month = String(date.getMonth() + 1).padStart(2, '0');
+                    const year = date.getFullYear();
+                    instance.input.value = `${day}.${month}.${year}`;
+                }
+            }
+        });
+    }
+
+    // Form submit edilmeden önce tarih formatını düzelt
+    const studentForm = document.querySelector('form[action*="students"]');
+    if (studentForm && birthDatePicker) {
+        studentForm.addEventListener('submit', function(e) {
+            // Flatpickr'dan seçilen tarihi al
+            if (birthDatePicker.selectedDates.length > 0) {
+                // Seçilen tarihi YYYY-MM-DD formatına çevir
+                const date = birthDatePicker.selectedDates[0];
+                const day = String(date.getDate()).padStart(2, '0');
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const year = date.getFullYear();
+                birthDateInput.value = `${year}-${month}-${day}`;
+            } else if (birthDateInput.value && birthDateInput.value.includes('.')) {
+                // Eğer manuel olarak gün.ay.yıl formatında girildiyse
+                const parts = birthDateInput.value.split('.');
+                if (parts.length === 3) {
+                    const day = parts[0].padStart(2, '0');
+                    const month = parts[1].padStart(2, '0');
+                    const year = parts[2];
+                    birthDateInput.value = `${year}-${month}-${day}`;
+                }
+            }
+        });
     }
 
 });

@@ -83,15 +83,25 @@ class PortalStudentController extends Controller
         // save information to session
         session([
             'student_id' => $userCertificate->user->id,
+            'searched_certificate_id' => $userCertificate->id, // Sorgulanan sertifika ID'sini kaydet
             'is_company_auth' => $isCompanyAuth,
             'company_tax_number' => $request->tax_number,
             'company_name' => $companyName,
             'login_type' => $loginType
         ]);
 
+        // Kullanıcının diğer sertifikalarını al (sorgulanan hariç)
+        $otherCertificates = UserCertificate::where('user_id', $userCertificate->user->id)
+            ->where('id', '!=', $userCertificate->id)
+            ->with('certificate')
+            ->orderBy('acquisition_date', 'desc')
+            ->get();
+
         return response()->json([
             'success' => true,
             'student' => $userCertificate->user,
+            'searched_certificate' => $userCertificate->load('certificate'),
+            'other_certificates' => $otherCertificates,
             'is_company_auth' => $isCompanyAuth,
             'login_type' => $loginType,
             'company_name' => $companyName
@@ -111,8 +121,31 @@ class PortalStudentController extends Controller
         $loginType = session('login_type', 'student');
         $companyName = session('company_name');
         $isCompanyAuth = session('is_company_auth', false);
+        
+        // Sorgulanan sertifika ID'sini session'dan al
+        $searchedCertificateId = session('searched_certificate_id');
+        $searchedCertificate = null;
+        $otherCertificates = collect();
+        
+        if ($searchedCertificateId) {
+            // Sorgulanan sertifikayı al
+            $searchedCertificate = UserCertificate::where('id', $searchedCertificateId)
+                ->where('user_id', $userId)
+                ->with('certificate')
+                ->first();
+            
+            // Diğer sertifikaları al (sorgulanan hariç)
+            $otherCertificates = UserCertificate::where('user_id', $userId)
+                ->where('id', '!=', $searchedCertificateId)
+                ->with('certificate')
+                ->orderBy('acquisition_date', 'desc')
+                ->get();
+        } else {
+            // Eğer sorgulanan sertifika yoksa tüm sertifikaları göster
+            $otherCertificates = $student->userCertificates;
+        }
 
-        return view('portal-user.user-cv', compact('student', 'loginType', 'companyName', 'isCompanyAuth'));
+        return view('portal-user.user-cv', compact('student', 'loginType', 'companyName', 'isCompanyAuth', 'searchedCertificate', 'otherCertificates'));
     }
 
     /**

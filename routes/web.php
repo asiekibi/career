@@ -43,8 +43,8 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
         Route::put('/students/{id}', 'update')->name('admin.students.update');
         Route::post('/students', 'store')->name('admin.students.store');
         Route::get('/students', 'index')->name('admin.students');
-                    Route::get('/partner-companies', 'partnerCompanies')->name('admin.partner-companies');
-                    Route::post('/partner-companies/{id}/permission', 'updatePartnerPermission')->name('admin.partner-companies.permission');
+        Route::get('/partner-companies', 'partnerCompanies')->name('admin.partner-companies');
+        Route::post('/partner-companies/{id}/permission', 'updatePartnerPermission')->name('admin.partner-companies.permission');
                     Route::post('/partner-companies/{id}/remove', 'removePartnerCompany')->name('admin.partner-companies.remove');
                     Route::post('/company-requests/{id}/approve', 'approveCompanyRequest')->name('admin.company-requests.approve');
                     Route::post('/company-requests/{id}/reject', 'rejectCompanyRequest')->name('admin.company-requests.reject');
@@ -156,9 +156,7 @@ Route::prefix('student-portal')->middleware('portal.auth')->controller(PortalStu
     Route::get('/', 'showPortalLogin')->name('portal-login');
     Route::post('/search', 'searchCertificate')->name('portal.search');
     Route::get('/student-cv/{userId}', 'showStudentCv')->name('portal.student.cv');
-    Route::get('/career-sequence', 'careerSequence')->name('portal.career-sequence');
-    Route::get('/partner-company', 'partnerCompany')->name('portal.partner-company');
-    Route::post('/partner-company', 'storePartnerCompany')->name('portal.partner-company.store');
+    // Kariyer sıralaması ve partner firma route'ları kaldırıldı
 });
 
 // Public certificate download route (for portals and users)
@@ -173,7 +171,6 @@ Route::post('/company-request', [PortalCompanyController::class, 'storeCompanyRe
 
 // Company Portal routes - prefix ile grupla
 Route::prefix('company-portal')->middleware('portal.auth')->controller(PortalCompanyController::class)->group(function () {
-    Route::get('/', 'showPortalLogin')->name('company-portal-login');
     Route::post('/login', 'login')->name('company-portal.login');
     Route::post('/search', 'searchCertificate')->name('company-portal.search');
     Route::get('/main', 'showMain')->name('company-portal.main');

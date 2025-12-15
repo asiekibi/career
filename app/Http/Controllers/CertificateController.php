@@ -8,6 +8,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\View\View;
 use App\Models\CertificateEducation;
+use App\Models\CertificateLesson;
 use App\Models\UserCertificate;
 use App\Models\User;
 use setasign\Fpdi\Tcpdf\Fpdi;
@@ -29,12 +30,20 @@ class CertificateController extends Controller
      */
     public function store(Request $request)
     {
-        $validator = Validator::make($request->all(), [
+        $rules = [
             'certificate_name' => 'required|string|max:255',
             'type' => 'required|in:ders,kurs',
             'course' => 'array',
             'template_file' => 'nullable|file|mimes:pdf|max:10240', // Max 10MB
-        ]);
+        ];
+        
+        // Klişeli sertifika (ders) için dersler zorunlu
+        if ($request->type === 'ders') {
+            $rules['course'] = 'required|array|min:1';
+            $rules['course.*'] = 'required|string|max:255';
+        }
+        
+        $validator = Validator::make($request->all(), $rules);
 
         if ($validator->fails()) {
             return back()->withErrors($validator)->withInput();
@@ -121,12 +130,20 @@ class CertificateController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $validator = Validator::make($request->all(), [
+        $rules = [
             'certificate_name' => 'required|string|max:255',
             'type' => 'required|in:ders,kurs',
             'course' => 'array',
             'template_file' => 'nullable|file|mimes:pdf|max:10240', // Max 10MB
-        ]);
+        ];
+        
+        // Klişeli sertifika (ders) için dersler zorunlu
+        if ($request->type === 'ders') {
+            $rules['course'] = 'required|array|min:1';
+            $rules['course.*'] = 'required|string|max:255';
+        }
+        
+        $validator = Validator::make($request->all(), $rules);
 
         if ($validator->fails()) {
             return back()->withErrors($validator)->withInput();
@@ -199,7 +216,7 @@ class CertificateController extends Controller
     {
         $user = User::findOrFail($id);
         $certificates = Certificate::all();
-        $userCertificates = $user->userCertificates()->with('certificate')->get();
+        $userCertificates = $user->userCertificates()->with(['certificate.certificateEducations', 'certificateLessons.certificateEducation'])->get();
         
         return view('admin.add-certificate', compact('user', 'certificates', 'userCertificates'));
     }
@@ -240,6 +257,12 @@ class CertificateController extends Controller
             return redirect()->back()->with('error', 'Bu sertifika zaten atanmış!');
         }
         
+        // Get certificate with its courses
+        $certificate = Certificate::with('certificateEducations')->findOrFail($request->certificate_id);
+        
+        // Determine total score (use provided score or generate random)
+        $totalScore = $request->score ?? rand(60, 100);
+        
         // Assign certificate
         $userCertificate = $user->userCertificates()->create([
             'certificate_id' => $request->certificate_id,
@@ -248,15 +271,54 @@ class CertificateController extends Controller
             'password' => $request->password,
             'content1' => $request->content1,
             'content2' => $request->content2,
-            'achievement_score' => $request->score ?? 0,
+            'achievement_score' => $totalScore,
             'issuing_institution' => $request->issuer,
             'acquisition_date' => $request->issue_date,
             'validity_period' => $request->validity_period,
-            'success_score' => $request->score ?? 0,
+            'success_score' => $totalScore,
         ]);
+        
+        // Distribute total score randomly among courses and save to certificate_lessons table
+        if ($certificate->certificateEducations->count() > 0) {
+            $courses = $certificate->certificateEducations;
+            $courseCount = $courses->count();
+            $remainingScore = $totalScore;
+            
+            // If only one course, give all points to it
+            if ($courseCount == 1) {
+                CertificateLesson::create([
+                    'user_certificate_id' => $userCertificate->id,
+                    'certificate_education_id' => $courses->first()->id,
+                    'score' => $totalScore,
+                ]);
+            } else {
+                // Assign random scores to each course (except the last one)
+                for ($i = 0; $i < $courseCount - 1; $i++) {
+                    // Calculate max possible score for this course (leave at least 1 point for remaining courses)
+                    $maxScore = max(1, $remainingScore - ($courseCount - $i - 1));
+                    // Assign random score between 1 and maxScore
+                    $randomScore = rand(1, $maxScore);
+                    
+                    CertificateLesson::create([
+                        'user_certificate_id' => $userCertificate->id,
+                        'certificate_education_id' => $courses[$i]->id,
+                        'score' => $randomScore,
+                    ]);
+                    
+                    $remainingScore -= $randomScore;
+                }
+                
+                // Assign remaining score to the last course
+                CertificateLesson::create([
+                    'user_certificate_id' => $userCertificate->id,
+                    'certificate_education_id' => $courses[$courseCount - 1]->id,
+                    'score' => max(1, $remainingScore),
+                ]);
+            }
+        }
 
         // User's point value update
-        $user->point = $user->point + ($request->score ?? 0);
+        $user->point = $user->point + $totalScore;
         $user->save();
 
         return redirect()->back()->with('success', 'Sertifika başarıyla atandı!');
@@ -377,8 +439,15 @@ class CertificateController extends Controller
         
         $pdf->useTemplate($tplId, 0, 0, $size['width'], $size['height'], true);
         
-        // Kullanıcı adı soyadı (Türkçe karakter desteği ile) - Sadece ilk harfler büyük (Title Case)
-        $userName = mb_convert_case($userCertificate->user->name . ' ' . $userCertificate->user->surname, MB_CASE_TITLE, 'UTF-8');
+        // Kullanıcı adı soyadı (Türkçe karakter desteği ile) - İlk harfleri büyük yap ama İ harfini koru
+        $name = $userCertificate->user->name;
+        $surname = $userCertificate->user->surname;
+        
+        // Her kelimenin ilk harfini büyük yap (İ harfini koruyarak)
+        $name = $this->mbUcfirst($name);
+        $surname = $this->mbUcfirst($surname);
+        
+        $userName = $name . ' ' . $surname;
         
         // CloisterBlack fontunu yükle (Old English stili) - İstediğiniz font
         $cloisterFontName = null;
@@ -438,13 +507,22 @@ class CertificateController extends Controller
             $registerNo = $userCertificate->certificate_code ?? 'CERT-' . str_pad($userCertificate->id, 6, '0', STR_PAD_LEFT);
         }
         // Content1 ve Content2'yi user_certificates tablosundan al
-        $content1 = $userCertificate->content1 ?? $certificate->content ?? '16 Hours Theoretical';
+        $content1 = $userCertificate->content1 ?? '';
         $content2 = $userCertificate->content2 ?? '';
+        
+        // Eğer içerik 1 yoksa, içerik 2'yi içerik 1 yerine kullan
+        if (empty($content1) && !empty($content2)) {
+            $content1 = $content2;
+            $content2 = '';
+        }
+        
+        // İçerik var mı kontrol et
+        $hasContent = !empty($content1) || !empty($content2);
         
         
         if ($certificateType === 'kurs') {
-            $registerY = 25; // Template içindeki beyaz alanın başlangıcından 25mm aşağıda (daha aşağı)
-            $content1Y = $registerY + 3; // Register No'nun 3mm altında (ders: 5mm)
+            $registerY = 26; // Template içindeki beyaz alanın başlangıcından 26mm aşağıda (24 -> 26, içerik yazılarını aşağıya taşımak için)
+            $content1Y = $registerY + 4; // Register No'nun 4mm altında (1 -> 4, içerik yazısını aşağı indirmek için)
             $content2Y = $content1Y + 3; // İçerik 1'in 3mm altında
             $tarihY = $content2Y + 3; // İçerik 2'nin 3mm altında (ders: 5mm)
             $userNameYPercentage = null; // Kurs için yüzde kullanmayacağız
@@ -461,56 +539,100 @@ class CertificateController extends Controller
             
         }
         
-        // Register No: yazısı - CloisterBlack fontu kullan
-        $registerFontName = $cloisterFontName ? $cloisterFontName : $turkishFallbackFont;
-        $pdf->SetFont($registerFontName, '', 12);
+        // Register No: yazısı - Harf harf font seçimi
+        $registerText = 'Register No: ' . $registerNo;
+        
         // Sağdan mesafe - sertifika tipine göre ayarla
         if ($certificateType === 'ders') {
-            $rightMargin = 38; // Ders tipi için sağdan 38mm mesafe
-            $contentRightMargin = 42; // İçerik yazıları için biraz daha fazla mesafe (45 -> 42, biraz sola)
+            $rightMargin = 40; // Ders tipi için sağdan 40mm mesafe (45 -> 40, biraz sağa)
+            $contentRightMargin = 24; // İçerik yazıları için daha sağa yakın (30 -> 24, daha sağa)
         } else {
-            $rightMargin = 30;
-            $contentRightMargin = 34; // İçerik yazıları için biraz daha fazla mesafe (37 -> 34, biraz sola)
+            $rightMargin = 35; // Kurs tipi için sağdan 35mm mesafe (30 -> 35, biraz sola)
+            $contentRightMargin = 20; // İçerik yazıları için daha sağa yakın (26 -> 20, daha sağa)
         }
         $registerX = $size['width'] - $rightMargin;
         $contentX = $size['width'] - $contentRightMargin; // İçerik yazıları için ayrı X pozisyonu
         $cellWidth = 70;
         
+        // Register No yazısı - Harf harf font seçimi ile
+        $registerTextLength = mb_strlen($registerText, 'UTF-8');
+        $registerCharWidths = [];
+        $registerFontSize = 12;
         
-        // Register No yazısı - Türkçe karakter desteği için
-        $pdf->SetXY($registerX - $cellWidth, $registerY);
-        $registerText = 'Register No: ' . $registerNo;
-        // Cell() metodunu kullan ama font'un Türkçe karakter desteği olduğundan emin ol
-        $pdf->Cell($cellWidth, 10, $registerText, 0, 0, 'R', false, '', 0, false, 'T', 'C');
+        // Türkçe karakterler listesi
+        $turkishChars = ['ğ', 'Ğ', 'ş', 'Ş', 'ü', 'Ü', 'ö', 'Ö', 'ç', 'Ç', 'İ', 'ı'];
         
-        // İçerik 1 yazısı (Register No'nun altında) - Biraz daha sağa mesafe
-        $pdf->SetFont('dejavuserif', 'I', 8); // Küçük italik font (10 -> 8, italik)
-        $pdf->SetXY($contentX - $cellWidth, $content1Y);
-        $pdf->Cell($cellWidth, 10, $content1, 0, 0, 'R');
+        // Önce tüm karakterlerin genişliğini hesapla
+        for ($i = 0; $i < $registerTextLength; $i++) {
+            $char = mb_substr($registerText, $i, 1, 'UTF-8');
+            $fontName = $this->getFontForCharacter($pdf, $char, $registerFontSize, $cloisterFontName, $middleAgesFontName, $turkishFallbackFont);
+            
+            // Türkçe karakter ise ve DejaVu kullanılıyorsa font boyutunu küçült
+            $isTurkishChar = in_array($char, $turkishChars, true);
+            $actualFontSize = ($isTurkishChar && $fontName === $turkishFallbackFont) ? $registerFontSize * 0.92 : $registerFontSize; // %92'si kadar
+            
+            $pdf->SetFont($fontName, '', $actualFontSize);
+            $registerCharWidths[$i] = $pdf->GetStringWidth($char);
+        }
         
-        // İçerik 2 yazısı (İçerik 1'in altında) - Biraz daha sağa mesafe
-        if (!empty($content2)) {
+        // Toplam genişliği hesapla ve sağa hizala
+        $registerTotalWidth = array_sum($registerCharWidths);
+        $registerStartX = $registerX - $registerTotalWidth;
+        $registerCurrentX = $registerStartX;
+        
+        // Her karakteri uygun font ile yaz
+        for ($i = 0; $i < $registerTextLength; $i++) {
+            $char = mb_substr($registerText, $i, 1, 'UTF-8');
+            $fontName = $this->getFontForCharacter($pdf, $char, $registerFontSize, $cloisterFontName, $middleAgesFontName, $turkishFallbackFont);
+            
+            // Türkçe karakter ise ve DejaVu kullanılıyorsa font boyutunu küçült
+            $isTurkishChar = in_array($char, $turkishChars, true);
+            $actualFontSize = ($isTurkishChar && $fontName === $turkishFallbackFont) ? $registerFontSize * 0.92 : $registerFontSize; // %92'si kadar
+            
+            $pdf->SetFont($fontName, '', $actualFontSize);
+            $pdf->SetXY($registerCurrentX, $registerY);
+            $pdf->Write(10, $char, '', 0, '', false, 0, false, false, 0);
+            $registerCurrentX += $registerCharWidths[$i];
+        }
+        
+        // İçerik yazıları - sadece içerik varsa göster
+        if ($hasContent) {
             $pdf->SetFont('dejavuserif', 'I', 8); // Küçük italik font
-            $pdf->SetXY($contentX - $cellWidth, $content2Y);
-            $pdf->Cell($cellWidth, 10, $content2, 0, 0, 'R');
+            
+            // İçerik yazıları için ortalama genişlik (Register No ile aynı hizada ama ortalanmış)
+            $contentCellWidth = $cellWidth;
+            // İçerik yazılarının ortalanacağı X pozisyonu (Register No ile aynı sağdan mesafe)
+            $contentCenterX = $size['width'] - $contentRightMargin - ($contentCellWidth / 2);
+            
+            // İçerik 1 yazısı (Register No'nun altında) - Ortalanmış
+            if (!empty($content1)) {
+                $pdf->SetXY($contentCenterX - ($contentCellWidth / 2), $content1Y);
+                $pdf->Cell($contentCellWidth, 10, $content1, 0, 0, 'C'); // 'C' = Center (ortalanmış)
+            }
+            
+            // İçerik 2 yazısı (İçerik 1'in altında) - Ortalanmış
+            if (!empty($content2)) {
+                $pdf->SetXY($contentCenterX - ($contentCellWidth / 2), $content2Y);
+                $pdf->Cell($contentCellWidth, 10, $content2, 0, 0, 'C'); // 'C' = Center (ortalanmış)
+            }
         }
         
         // Tarih yazısı kaldırıldı
         
         $pdf->SetTextColor(0, 0, 0); // Siyah renk
         
-        // Ad Soyad için font boyutu - Sertifika tipine göre (küçültüldü)
-        $fontSize = ($certificateType === 'ders') ? 39 : 40; // Ders: 45->38->39, Kurs: 40->34->36->37->38->39->40 (bir tık daha büyütüldü)
+        // Ad Soyad için font boyutu - Sertifika tipine göre
+        $fontSize = ($certificateType === 'ders') ? 36 : 48; // Ders: 39->36, Kurs: 52->48 (biraz küçültüldü)
         
         $x = 0;
         
         if ($certificateType === 'kurs') {
             $cellHeight = 10;
-            $bottomMargin = 118; // 117 -> 118 (çok az daha yukarıya taşımak için artırıldı)
+            $bottomMargin = 122; // 128 -> 122 (biraz aşağıya taşımak için azaltıldı)
             if (isset($size['height']) && $size['height'] > 0) {
                 $y = $size['height'] - $cellHeight - $bottomMargin;
             } else {
-                $y = 150; // 151 -> 150 (çok az daha yukarıya taşımak için azaltıldı)
+                $y = 148; // 142 -> 148 (biraz aşağıya taşımak için artırıldı)
             }
         } else {
             if (isset($size['height']) && $size['height'] > 0) {
@@ -520,36 +642,18 @@ class CertificateController extends Controller
             }
         }
         
-        // Ad Soyad yazısı - "ğ" ve "ş" karakterleri için MiddleAges_PERSONAL_USE, diğerleri için CloisterBlack
+        // Ad Soyad yazısı - Harf harf font seçimi ile
         $pdf->SetTextColor(0, 0, 0);
         
-        // Metinde "ğ" veya "ş" karakteri var mı kontrol et
-        $hasG = (mb_strpos($userName, 'ğ') !== false || mb_strpos($userName, 'Ğ') !== false);
-        $hasS = (mb_strpos($userName, 'ş') !== false || mb_strpos($userName, 'Ş') !== false);
-        $hasTurkishSpecialChars = $hasG || $hasS;
-        
-        // Font seçimi: "ğ" veya "ş" varsa MiddleAges_PERSONAL_USE, yoksa CloisterBlack
-        if ($hasTurkishSpecialChars && $middleAgesFontName) {
-            $nameFontName = $middleAgesFontName;
-        } else {
-            $nameFontName = $cloisterFontName ? $cloisterFontName : $turkishFallbackFont;
-        }
-        
-        $pdf->SetFont($nameFontName, '', $fontSize);
-        
-        // Metni ortalamak için Write() kullan - Unicode karakterleri daha iyi destekler
-        // Önce metnin genişliğini hesapla
-        $textWidth = $pdf->GetStringWidth($userName);
-        $startX = ($size['width'] - $textWidth) / 2;
-        $pdf->SetXY($startX, $y);
-        $pdf->Write(10, $userName, '', 0, '', false, 0, false, false, 0);
+        // Harf harf font seçimi ile yaz
+        $this->writeTextWithCharacterFonts($pdf, $userName, 0, $y, $fontSize, $cloisterFontName, $middleAgesFontName, $turkishFallbackFont, $size['width']);
         
         $pdf->SetCreator('Kariyer Sistemi');
         $pdf->SetAuthor('Kariyer Sistemi');
         $pdf->SetTitle($certificate->certificate_name ?? 'Sertifika');
         $pdf->SetSubject('Sertifika');
         
-        // PDF şifre koruması - Her iki sertifika tipi (ders ve kurs) için de uygulanır
+        // PDF şifre koruması - Her iki sertifika tipi (ders ve kurs) için de uygulanır"""
         $password = $userCertificate->password ?? '12345';
         $pdf->SetProtection(
             ['print', 'modify', 'copy', 'annot-forms'],
@@ -565,6 +669,194 @@ class CertificateController extends Controller
             ->header('Content-Type', 'application/pdf')
             ->header('Content-Disposition', 'attachment; filename="' . $fileName . '"')
             ->header('Cache-Control', 'private, must-revalidate');
+    }
+
+    /**
+     * Bir karakter için uygun fontu seç (harf harf kontrol)
+     * Sıra: CloisterBlack -> MiddleAges -> DejaVu
+     * Eğer bir font'ta karakter bulunamazsa bir sonraki font'a geçer
+     */
+    private function getFontForCharacter($pdf, $char, $fontSize, $cloisterFontName, $middleAgesFontName, $turkishFallbackFont)
+    {
+        // Büyük İ, küçük ğ ve küçük ş karakterleri için direkt MiddleAges font'unu kullan (eğer yüklüyse)
+        $middleAgesPreferredChars = ['İ', 'ğ', 'ş'];
+        if (in_array($char, $middleAgesPreferredChars, true) && $middleAgesFontName) {
+            try {
+                $pdf->SetFont($middleAgesFontName, '', $fontSize);
+                $charWidth = $pdf->GetStringWidth($char);
+                
+                // MiddleAges'te karakter varsa direkt kullan
+                if ($charWidth > 0) {
+                    $spaceWidth = $pdf->GetStringWidth(' ');
+                    // Karakter genişliği boşluktan farklıysa (yani karakter gerçekten varsa) kullan
+                    if (abs($charWidth - $spaceWidth) > 0.01) {
+                        return $middleAgesFontName;
+                    }
+                }
+            } catch (\Exception $e) {
+                // MiddleAges yüklenemezse devam et
+            }
+        }
+        
+        // Tüm karakterler için (ğ, Ğ, İ, ı dahil) önce gothic font'ları dene
+        $fontsToTry = [];
+        
+        if ($cloisterFontName) {
+            $fontsToTry[] = $cloisterFontName;
+        }
+        if ($middleAgesFontName) {
+            $fontsToTry[] = $middleAgesFontName;
+        }
+        // Son olarak fallback font'u ekle
+        $fontsToTry[] = $turkishFallbackFont;
+        
+        // Problematik Türkçe karakterler - Bu karakterler için çok sıkı kontrol yap
+        // (ğ, Ğ, ü, Ü, İ, ı gibi karakterler gothic font'larda genelde hoş görünmüyor)
+        $problematicTurkishChars = ['ğ', 'Ğ', 'ü', 'Ü', 'İ', 'ı'];
+        $isProblematicTurkishChar = in_array($char, $problematicTurkishChars, true);
+        
+        // Diğer Türkçe karakterler
+        $otherTurkishChars = ['ş', 'Ş', 'ö', 'Ö', 'ç', 'Ç'];
+        $isOtherTurkishChar = in_array($char, $otherTurkishChars, true);
+        
+        // Her font'u dene
+        foreach ($fontsToTry as $fontName) {
+            try {
+                $pdf->SetFont($fontName, '', $fontSize);
+                $charWidth = $pdf->GetStringWidth($char);
+                
+                // Karakter genişliği kontrolü - 0'dan büyük olmalı
+                if ($charWidth > 0) {
+                    // Boşluk karakterinin genişliğini al
+                    $spaceWidth = $pdf->GetStringWidth(' ');
+                    
+                    // Problematik Türkçe karakterler için çok sıkı kontrol
+                    // Bu karakterler gothic font'larda genelde hoş görünmediği için
+                    // sadece gerçekten iyi görünüyorsa kullan
+                    if ($isProblematicTurkishChar) {
+                        // Font boyutunun %12'si kadar minimum genişlik bekliyoruz (daha sıkı)
+                        $minWidth = $fontSize * 0.12;
+                        
+                        // Karakter genişliği boşluk genişliğinden çok belirgin şekilde farklı olmalı
+                        // ve minimum genişlikten büyük olmalı
+                        if (abs($charWidth - $spaceWidth) > ($fontSize * 0.10) && $charWidth >= $minWidth) {
+                            return $fontName;
+                        }
+                    } elseif ($isOtherTurkishChar) {
+                        // Diğer Türkçe karakterler için orta seviye kontrol
+                        // Font boyutunun %8'i kadar minimum genişlik
+                        $minWidth = $fontSize * 0.08;
+                        
+                        // Karakter genişliği boşluk genişliğinden belirgin şekilde farklı olmalı
+                        if (abs($charWidth - $spaceWidth) > ($fontSize * 0.05) && $charWidth >= $minWidth) {
+                            return $fontName;
+                        }
+                    } else {
+                        // Normal karakterler için normal kontrol
+                        // Font boyutunun %3'ü kadar minimum genişlik
+                        $minWidth = $fontSize * 0.03;
+                        
+                        if (abs($charWidth - $spaceWidth) > 0.01 && $charWidth >= $minWidth) {
+                            return $fontName;
+                        }
+                    }
+                }
+            } catch (\Exception $e) {
+                // Font yüklenemezse bir sonraki font'a geç
+                continue;
+            }
+        }
+        
+        // Hiçbir font'ta bulunamazsa fallback font kullan
+        return $turkishFallbackFont;
+    }
+    
+    /**
+     * Metni harf harf yaz (her harf için uygun font seçimi ile)
+     */
+    private function writeTextWithCharacterFonts($pdf, $text, $x, $y, $fontSize, $cloisterFontName, $middleAgesFontName, $turkishFallbackFont, $width)
+    {
+        $textLength = mb_strlen($text, 'UTF-8');
+        $charWidths = [];
+        
+        // Türkçe karakterler listesi
+        $turkishChars = ['ğ', 'Ğ', 'ş', 'Ş', 'ü', 'Ü', 'ö', 'Ö', 'ç', 'Ç', 'İ', 'ı'];
+        
+        // Önce tüm karakterlerin genişliğini hesapla
+        for ($i = 0; $i < $textLength; $i++) {
+            $char = mb_substr($text, $i, 1, 'UTF-8');
+            $fontName = $this->getFontForCharacter($pdf, $char, $fontSize, $cloisterFontName, $middleAgesFontName, $turkishFallbackFont);
+            
+            // Türkçe karakter ise ve DejaVu kullanılıyorsa font boyutunu küçült
+            $isTurkishChar = in_array($char, $turkishChars, true);
+            $actualFontSize = ($isTurkishChar && $fontName === $turkishFallbackFont) ? $fontSize * 0.92 : $fontSize; // %92'si kadar
+            
+            $pdf->SetFont($fontName, '', $actualFontSize);
+            $charWidths[$i] = $pdf->GetStringWidth($char);
+        }
+        
+        // Toplam genişliği hesapla
+        $totalWidth = array_sum($charWidths);
+        $startX = ($width - $totalWidth) / 2;
+        $currentX = $startX;
+        
+        // Her karakteri uygun font ile yaz
+        for ($i = 0; $i < $textLength; $i++) {
+            $char = mb_substr($text, $i, 1, 'UTF-8');
+            $fontName = $this->getFontForCharacter($pdf, $char, $fontSize, $cloisterFontName, $middleAgesFontName, $turkishFallbackFont);
+            
+            // Türkçe karakter ise ve DejaVu kullanılıyorsa font boyutunu küçült
+            $isTurkishChar = in_array($char, $turkishChars, true);
+            $actualFontSize = ($isTurkishChar && $fontName === $turkishFallbackFont) ? $fontSize * 0.92 : $fontSize; // %92'si kadar
+            
+            $pdf->SetFont($fontName, '', $actualFontSize);
+            $pdf->SetXY($currentX, $y);
+            $pdf->Write(10, $char, '', 0, '', false, 0, false, false, 0);
+            $currentX += $charWidths[$i];
+        }
+    }
+
+    /**
+     * Türkçe karakterleri koruyarak her kelimenin ilk harfini büyük yap
+     */
+    private function mbUcfirst($string)
+    {
+        if (empty($string)) {
+            return $string;
+        }
+        
+        // Metni kelimelere böl
+        $words = preg_split('/\s+/', $string);
+        $result = [];
+        
+        foreach ($words as $word) {
+            if (empty($word)) {
+                $result[] = $word;
+                continue;
+            }
+            
+            // İlk karakteri al
+            $firstChar = mb_substr($word, 0, 1, 'UTF-8');
+            $rest = mb_substr($word, 1, null, 'UTF-8');
+            
+            // İlk karakteri büyük yap (Türkçe karakterleri özel olarak işle)
+            if ($firstChar === 'i') {
+                $firstCharUpper = 'İ'; // Küçük i -> Büyük İ
+            } elseif ($firstChar === 'ı') {
+                $firstCharUpper = 'I'; // Küçük ı -> Büyük I
+            } elseif ($firstChar === 'İ') {
+                $firstCharUpper = 'İ'; // Büyük İ -> İ (koru)
+            } elseif ($firstChar === 'I') {
+                $firstCharUpper = 'I'; // Büyük I -> I (koru)
+            } else {
+                // Diğer karakterler için normal büyük harf yap
+                $firstCharUpper = mb_strtoupper($firstChar, 'UTF-8');
+            }
+            
+            $result[] = $firstCharUpper . $rest;
+        }
+        
+        return implode(' ', $result);
     }
 
     /**

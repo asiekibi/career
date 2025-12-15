@@ -4,6 +4,7 @@
     <meta charset="utf-8"/>
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
     <title>Firma Başvuru Formu</title>
+    <link rel="icon" type="image/png" href="{{ asset('logo/logo.png') }}"/>
     <link href="https://fonts.googleapis.com" rel="preconnect"/>
     <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&amp;display=swap" rel="stylesheet"/>
@@ -52,10 +53,8 @@
             <div class="container mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex items-center justify-between h-16">
                     <div class="flex items-center gap-4">
-                        <div class="text-primary">
-                            <svg class="h-8 w-8" fill="currentColor" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M44 4H30.6666V17.3334H17.3334V30.6666H4V44H44V4Z"></path>
-                            </svg>
+                        <div class="flex items-center">
+                            <img src="{{ asset('logo/logo.png') }}" alt="Logo" class="h-10 w-auto"/>
                         </div>
                         <h2 class="text-2xl font-bold">Firma Başvuru Formu</h2>
                     </div>

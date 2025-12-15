@@ -19,7 +19,23 @@ class CertificateEducation extends Model
 
     protected $fillable = [
         'certificate_id',
-        'course_name'
+        'course_name',
+        'puanlar'
     ];
 
+    /**
+     * Get the certificate that owns this education.
+     */
+    public function certificate()
+    {
+        return $this->belongsTo(Certificate::class);
+    }
+
+    /**
+     * Get the certificate lessons (scores) for this education.
+     */
+    public function certificateLessons()
+    {
+        return $this->hasMany(CertificateLesson::class);
+    }
 }

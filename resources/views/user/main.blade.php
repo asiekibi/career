@@ -311,6 +311,13 @@
                                         @php
                                             $certificate = $userCertificate->certificate;
                                             $courses = $certificate ? $certificate->certificateEducations : collect();
+                                            $certificateLessons = $userCertificate->certificateLessons ?? collect();
+                                            
+                                            // certificate_lessons tablosundan puanları al
+                                            $lessonScores = [];
+                                            foreach ($certificateLessons as $lesson) {
+                                                $lessonScores[$lesson->certificate_education_id] = $lesson->score;
+                                            }
                                         @endphp
                                         <tr class="bg-white border-b dark:bg-background-dark dark:border-gray-700">
                                             <th class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white" scope="row">
@@ -343,7 +350,13 @@
                                                         <div class="space-y-1">
                                                             @foreach($courses as $index => $course)
                                                                 @php
-                                                                    $courseScore = $scorePerCourse + ($index === $courseCount - 1 ? $remainder : 0);
+                                                                    // certificate_lessons tablosundan puan varsa onu kullan, yoksa eşit dağıt (eski kayıtlar için)
+                                                                    if (isset($lessonScores[$course->id])) {
+                                                                        $courseScore = $lessonScores[$course->id];
+                                                                    } else {
+                                                                        // Eşit dağıt (eski kayıtlar için)
+                                                                        $courseScore = $scorePerCourse + ($index === $courseCount - 1 ? $remainder : 0);
+                                                                    }
                                                                 @endphp
                                                                 <div class="flex justify-between items-center text-sm text-gray-600 dark:text-gray-400">
                                                                     <span>{{ $course->course_name }}</span>

@@ -1,206 +1,130 @@
-<!DOCTYPE html>
-<html lang="tr">
-<head>
-    <meta charset="utf-8"/>
-    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-    <title>Sertifika Doğrulama</title>
-    <link href="https://fonts.googleapis.com" rel="preconnect"/>
-    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&amp;display=swap" rel="stylesheet"/>
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-    <script>
-        // Tailwind config'i önce tanımla
-        window.tailwindConfig = {
-            darkMode: "class",
-            theme: {
-                extend: {
-                    colors: {
-                        "primary": "#11d411",
-                        "background-light": "#f6f8f6",
-                        "background-dark": "#102210",
-                    },
-                    fontFamily: {
-                        "display": ["Inter", "sans-serif"]
-                    },
-                    borderRadius: {
-                        "DEFAULT": "0.25rem",
-                        "lg": "0.5rem",
-                        "xl": "0.75rem",
-                        "full": "9999px"
-                    },
-                },
-            },
-        };
-    </script>
-    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <script>
-        // Tailwind yüklendikten sonra config'i uygula
-        if (typeof tailwind !== 'undefined' && window.tailwindConfig) {
-            tailwind.config = window.tailwindConfig;
-        }
-    </script>
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-        }
-        /* Fallback stiller */
-        .bg-background-light {
-            background-color: #f6f8f6;
-        }
-        .bg-background-dark {
-            background-color: #102210;
-        }
-        .text-primary {
-            color: #11d411;
-        }
-        .bg-primary {
-            background-color: #11d411;
-        }
-    </style>
-</head>
+<?xml version="1.0" encoding="UTF-8"?>
+<jmeterTestPlan version="1.2" properties="5.0" jmeter="5.6.2">
+  <hashTree>
 
-<!-- main content -->
-<body class="bg-background-light dark:bg-background-dark font-display text-gray-900 dark:text-gray-100">
-    <div class="flex flex-col min-h-screen">
-        <header class="border-b border-gray-200 dark:border-gray-800">
-            <!-- header -->
-            <div class="container mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="flex items-center justify-between h-16">
-                    <div class="flex items-center gap-4">
-                        <div class="text-primary">
-                            <svg class="h-8 w-8" fill="currentColor" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M44 4H30.6666V17.3334H17.3334V30.6666H4V44H44V4Z"></path>
-                            </svg>
-                        </div>
-                        <h2 class="text-2xl font-bold">SertifikaSorgula</h2>
-                    </div>
-                </div>
-            </div>
-        </header>
+    <!-- ================= TEST PLAN ================= -->
+    <TestPlan guiclass="TestPlanGui" testclass="TestPlan" testname="Laravel Exam System - 100 Users Load Test" enabled="true">
+      <stringProp name="TestPlan.comments">100 Concurrent Users Exam Load Test</stringProp>
+      <boolProp name="TestPlan.functional_mode">false</boolProp>
+      <boolProp name="TestPlan.tearDown_on_shutdown">true</boolProp>
+      <boolProp name="TestPlan.serialize_threadgroups">false</boolProp>
+    </TestPlan>
 
-        <!-- main content -->
-        <main class="flex-grow flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-            <div class="w-full max-w-md space-y-8">
-                <div class="text-center">
-                    <h1 class="text-4xl font-extrabold tracking-tight">Sertifikanızı Doğrulayın</h1>
-                    <p class="mt-4 text-lg text-gray-500 dark:text-gray-400">CV'nizi görüntülemek için sertifika kodunuzu girin.</p>
-                </div>
-                
-                <form id="certificateForm" class="space-y-6">
-                    <div class="space-y-4">
-                        <div class="relative">
-                            <input id="fullName" class="w-full h-14 pl-4 pr-12 bg-background-light dark:bg-background-dark border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-primary focus:border-primary" placeholder="Ad Soyad" type="text" required/>
-                        </div>
-                        <div class="relative">
-                            <input id="certificateCode" class="w-full h-14 pl-4 pr-12 bg-background-light dark:bg-background-dark border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-primary focus:border-primary" placeholder="Sertifika Numarası" type="text" required/>
-                        </div>
-                    </div>
-                    <button type="submit" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-bold text-black bg-primary hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors">
-                        Sorgula
-                    </button>
-                </form>
-                
-                <!-- Hata mesajı -->
-                <div id="errorMessage" class="text-center space-y-6 pt-6 hidden">
-                    <div class="flex justify-center">
-                        <svg class="h-16 w-16 text-red-500" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" stroke-linecap="round" stroke-linejoin="round"></path>
-                        </svg>
-                    </div>
-                    <div class="space-y-2">
-                        <p class="text-xl font-bold">Sertifika kaydına ulaşılamamıştır.</p>
-                        <p class="text-gray-500 dark:text-gray-400">Lütfen sertifika kodunu kontrol edip tekrar deneyin.</p>
-                    </div>
-                </div>
-                
-                <!-- Başarılı sonuç -->
-                <div id="successResult" class="pt-6 hidden">
-                    <div class="bg-white dark:bg-gray-800 shadow-lg rounded-xl overflow-hidden">
-                        <div class="relative h-48 w-full bg-cover bg-center" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuD5P26mZNldhffbC9SQb803JfXreNDhcj168GOtC_C4vt1wSUR96bzYR5MQj5kQd3gL_zdJUo8OizY1IFb9mIwQljWxDgvgAFti32RrH2J3AWtpoAuYGl48giyynttJM-GQS0OXGgL9S1S27sWT4o23-DpFgudSsJjZ-wn-wHD5T8oKywJ6NoLqkX30GSdCI3UIRYk3kU879sov8gAtuVGMEnn1QMs8O7UXoYy8MlNtqCgt2sGF7evnpOuGplvUT6ePBcDbQ_plP3g");'>
-                            <div class="absolute inset-0 bg-black bg-opacity-30"></div>
-                            <div class="absolute bottom-4 left-4">
-                                <img id="studentPhoto" alt="Profil Fotoğrafı" class="h-24 w-24 rounded-full border-4 border-white dark:border-gray-800" src=""/>
-                            </div>
-                        </div>
-                        <div class="p-6">
-                            <h3 id="studentName" class="text-2xl font-bold"></h3>
-                            <p class="text-primary font-semibold">Öğrenci</p>
-                            <p class="mt-4 text-gray-600 dark:text-gray-300">
-                                Sertifika başarıyla doğrulandı. Öğrencinin bilgilerini aşağıda görebilirsiniz.
-                            </p>
-                            <div class="mt-6">
-                                <button id="viewCvBtn" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-bold text-black bg-primary hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors">
-                                    Özgeçmişini Gör
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </main>
-    </div>
+    <hashTree>
 
-    <script>
-        // certificate form submit
-        document.getElementById('certificateForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const fullName = document.getElementById('fullName').value.trim();
-            const certificateCode = document.getElementById('certificateCode').value.trim();
-            const errorMessage = document.getElementById('errorMessage');
-            const successResult = document.getElementById('successResult');
-            
-            console.log('Form submitted with:', { fullName, certificateCode }); // Debug için
-            
-            // Loading göster
-            const submitBtn = this.querySelector('button[type="submit"]');
-            const originalText = submitBtn.textContent;
-            submitBtn.textContent = 'Sorgulanıyor...';
-            submitBtn.disabled = true;
-            
-            const url = '{{ route("portal.search") }}';
-            console.log('Request URL:', url); // Debug için
-            
-            fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify({
-                    full_name: fullName,
-                    certificate_code: certificateCode,
-                    tax_number: null
-                })
-            })
-            .then(response => {
-                console.log('Response status:', response.status); // Debug için
-                return response.json();
-            })
-            .then(data => {
-                console.log('Response data:', data); // Debug için
-                if (data.success) {
-                    // Başarılı giriş sonrası direkt portal-user CV sayfasına yönlendir
-                    if (data.student) {
-                        window.location.href = '{{ route("portal.student.cv", ["userId" => ":userId"]) }}'.replace(':userId', data.student.id);
-                    }
-                } else {
-                    successResult.classList.add('hidden');
-                    errorMessage.classList.remove('hidden');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                successResult.classList.add('hidden');
-                errorMessage.classList.remove('hidden');
-            })
-            .finally(() => {
-                // Loading remove
-                submitBtn.textContent = originalText;
-                submitBtn.disabled = false;
-            });
-        });
-    </script>
-</body>
-</html>
+      <!-- ================= THREAD GROUP ================= -->
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="100 Concurrent Users" enabled="true">
+        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
+
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController">
+          <boolProp name="LoopController.continue_forever">false</boolProp>
+          <intProp name="LoopController.loops">1</intProp>
+        </elementProp>
+
+        <!-- 100 USER -->
+        <stringProp name="ThreadGroup.num_threads">100</stringProp>
+
+        <!-- 2 DAKİKADA KADEMELİ -->
+        <stringProp name="ThreadGroup.ramp_time">120</stringProp>
+      </ThreadGroup>
+
+      <hashTree>
+
+        <!-- ================= COOKIE MANAGER ================= -->
+        <CookieManager guiclass="CookiePanel" testclass="CookieManager" testname="HTTP Cookie Manager" enabled="true">
+          <boolProp name="CookieManager.clearEachIteration">false</boolProp>
+          <boolProp name="CookieManager.controlledByThreadGroup">true</boolProp>
+        </CookieManager>
+        <hashTree/>
+
+        <!-- ================= HTTP DEFAULTS ================= -->
+        <ConfigTestElement guiclass="HttpDefaultsGui" testclass="ConfigTestElement" testname="HTTP Defaults" enabled="true">
+          <stringProp name="HTTPSampler.domain">asieduportal.com</stringProp>
+          <stringProp name="HTTPSampler.protocol">https</stringProp>
+          <stringProp name="HTTPSampler.connect_timeout">15000</stringProp>
+          <stringProp name="HTTPSampler.response_timeout">60000</stringProp>
+        </ConfigTestElement>
+        <hashTree/>
+
+        <!-- ================= DEFAULT HEADERS ================= -->
+        <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="Default Headers" enabled="true">
+          <collectionProp name="HeaderManager.headers">
+            <elementProp name="" elementType="Header">
+              <stringProp name="Header.name">User-Agent</stringProp>
+              <stringProp name="Header.value">Mozilla/5.0</stringProp>
+            </elementProp>
+            <elementProp name="" elementType="Header">
+              <stringProp name="Header.name">Accept</stringProp>
+              <stringProp name="Header.value">application/json,text/html</stringProp>
+            </elementProp>
+          </collectionProp>
+        </HeaderManager>
+        <hashTree/>
+
+        <!-- ================= 1. EXAM DETAIL PAGE ================= -->
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="1. Exam Detail Page" enabled="true">
+          <stringProp name="HTTPSampler.method">GET</stringProp>
+          <stringProp name="HTTPSampler.path">/exam/test-sinav-2024-2025-12-15/detail</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+        </HTTPSamplerProxy>
+
+        <hashTree>
+          <!-- CSRF TOKEN -->
+          <RegexExtractor guiclass="RegexExtractorGui" testclass="RegexExtractor" testname="Extract CSRF Token" enabled="true">
+            <stringProp name="RegexExtractor.refname">CSRF_TOKEN</stringProp>
+            <stringProp name="RegexExtractor.regex">&lt;meta name=&quot;csrf-token&quot; content=&quot;(.+?)&quot;</stringProp>
+            <stringProp name="RegexExtractor.template">$1$</stringProp>
+            <stringProp name="RegexExtractor.match_number">1</stringProp>
+            <stringProp name="RegexExtractor.default">NOT_FOUND</stringProp>
+          </RegexExtractor>
+          <hashTree/>
+        </hashTree>
+
+        <!-- ================= 2. PREPARE EXAM START ================= -->
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="2. Prepare Exam Start" enabled="true">
+          <stringProp name="HTTPSampler.method">POST</stringProp>
+          <stringProp name="HTTPSampler.path">/exam/test-sinav-2024-2025-12-15/prepare-start</stringProp>
+          <stringProp name="HTTPSampler.implementation">HttpClient4</stringProp>
+
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+            <collectionProp name="Arguments.arguments">
+              <elementProp name="" elementType="HTTPArgument">
+                <stringProp name="Argument.value">
+                  {"name":"User ${__threadNum}","surname":"Test","email":"user${__threadNum}@test.com","phone":"555000${__threadNum}"}
+                </stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+              </elementProp>
+            </collectionProp>
+          </elementProp>
+
+          <collectionProp name="HTTPsampler.headers">
+            <elementProp name="" elementType="Header">
+              <stringProp name="Header.name">Content-Type</stringProp>
+              <stringProp name="Header.value">application/json</stringProp>
+            </elementProp>
+            <elementProp name="" elementType="Header">
+              <stringProp name="Header.name">X-CSRF-TOKEN</stringProp>
+              <stringProp name="Header.value">${CSRF_TOKEN}</stringProp>
+            </elementProp>
+          </collectionProp>
+        </HTTPSamplerProxy>
+
+        <hashTree/>
+
+        <!-- ================= 3. TAKE EXAM PAGE ================= -->
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="3. Take Exam Page" enabled="true">
+          <stringProp name="HTTPSampler.method">GET</stringProp>
+          <stringProp name="HTTPSampler.path">/exam/test-sinav-2024-2025-12-15</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+        </HTTPSamplerProxy>
+
+        <hashTree/>
+
+        <!-- ================= RESULTS ================= -->
+        <ResultCollector guiclass="SummaryReport" testclass="ResultCollector" testname="Summary Report" enabled="true"/>
+        <hashTree/>
+
+      </hashTree>
+    </hashTree>
+  </hashTree>
+</jmeterTestPlan>

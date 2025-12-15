@@ -163,12 +163,8 @@ class AuthController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
         
-        // Eğer company portal'dan çıkış yapıldıysa portal-login'e yönlendir
-        if ($isCompanyAuth || $loginType === 'company' || $isCompany) {
-            return redirect()->route('company-portal-login')->with('success', 'Başarıyla çıkış yaptınız!');
-        }
-        
-        return redirect('/login')->with('success', 'Başarıyla çıkış yaptınız!');
+        // Tüm çıkış işlemlerinde ana login sayfasına yönlendir
+        return redirect()->route('login')->with('success', 'Başarıyla çıkış yaptınız!');
     }
 
 

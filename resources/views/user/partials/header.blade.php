@@ -5,6 +5,7 @@
         <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
         <meta name="csrf-token" content="{{ csrf_token() }}">
         <title>Öğrenci Paneli - CV Düzenle</title>
+        <link rel="icon" type="image/png" href="{{ asset('logo/logo.png') }}"/>
         <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
         <link href="https://fonts.googleapis.com" rel="preconnect"/>
         <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
@@ -51,7 +52,8 @@
 
             <!-- Sol panel - Desktop normal, mobile hamburger menu -->
             <aside id="sidebar" class="w-64 bg-white dark:bg-background-dark border-r border-gray-200 dark:border-gray-800 flex flex-col fixed lg:static inset-y-0 left-0 z-50 transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out">
-                <div class="p-6">
+                <div class="p-6 flex items-center gap-3">
+                    <img src="{{ asset('logo/logo.png') }}" alt="Logo" class="h-8 w-auto"/>
                     <h1 class="text-2xl font-bold text-gray-800 dark:text-white">Öğrenci Paneli</h1>
                 </div>
                 <nav class="flex-1 px-4 py-2">

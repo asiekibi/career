@@ -29,6 +29,7 @@ class UserCertificate extends Model
         'acquisition_date',
         'validity_period',
         'success_score',
+        'course_scores',
     ];
 
     /**
@@ -42,6 +43,7 @@ class UserCertificate extends Model
             'acquisition_date' => 'date',
             'achievement_score' => 'integer',
             'success_score' => 'integer',
+            'course_scores' => 'array',
         ];
     }
 
@@ -59,5 +61,13 @@ class UserCertificate extends Model
     public function certificate()
     {
         return $this->belongsTo(Certificate::class);
+    }
+
+    /**
+     * Get the certificate lessons (course scores) for this user certificate.
+     */
+    public function certificateLessons()
+    {
+        return $this->hasMany(CertificateLesson::class);
     }
 }

@@ -98,10 +98,12 @@
                             {{ $certificate->certificate_name }}
                         </h3>
                         <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                            @if($certificate->type == 'kurs')
+                            @if(strtolower($certificate->type ?? '') === 'kurs')
                                 Klişesiz Sertifika
-                            @else
+                            @elseif(strtolower($certificate->type ?? '') === 'ders')
                                 Klişeli Sertifika
+                            @else
+                                Belirtilmemiş
                             @endif
                         </p>
                     </div>
@@ -233,6 +235,10 @@
         const form = document.querySelector('form[action*="certificates.store"]');
         if (form) {
             form.addEventListener('submit', function(e) {
+                // Sertifika tipini kontrol et
+                const typeSelect = document.getElementById('certificate-type');
+                const selectedType = typeSelect ? typeSelect.value : '';
+                
                 // Tüm course inputlarını al
                 const courseInputs = document.querySelectorAll('input[name="course[]"]');
                 
@@ -247,11 +253,11 @@
                     }
                 });
                 
-                // Eğer hiç ders yoksa uyarı ver
+                // Klişeli sertifika (ders) için ders zorunlu, klişesiz (kurs) için değil
                 const remainingInputs = document.querySelectorAll('input[name="course[]"]');
-                if (remainingInputs.length === 0) {
+                if (selectedType === 'ders' && remainingInputs.length === 0) {
                     e.preventDefault();
-                    alert('En az bir ders eklemelisiniz!');
+                    alert('Klişeli sertifika için en az bir ders eklemelisiniz!');
                     return false;
                 }
             });
@@ -368,6 +374,10 @@
         const editForm = document.getElementById('editCertificateForm');
         if (editForm) {
             editForm.addEventListener('submit', function(e) {
+                // Sertifika tipini kontrol et
+                const typeSelect = document.getElementById('edit-certificate-type');
+                const selectedType = typeSelect ? typeSelect.value : '';
+                
                 // Remove empty course inputs
                 const courseInputs = document.querySelectorAll('#edit-courses-container input[name="course[]"]');
                 courseInputs.forEach(function(input) {
@@ -378,6 +388,14 @@
                         }
                     }
                 });
+                
+                // Klişeli sertifika (ders) için ders zorunlu, klişesiz (kurs) için değil
+                const remainingInputs = document.querySelectorAll('#edit-courses-container input[name="course[]"]');
+                if (selectedType === 'ders' && remainingInputs.length === 0) {
+                    e.preventDefault();
+                    alert('Klişeli sertifika için en az bir ders eklemelisiniz!');
+                    return false;
+                }
             });
         }
     });

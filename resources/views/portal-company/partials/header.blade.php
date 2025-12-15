@@ -5,6 +5,7 @@
         <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
         <meta name="csrf-token" content="{{ csrf_token() }}">
         <title>Portal Company</title>
+        <link rel="icon" type="image/png" href="{{ asset('logo/logo.png') }}"/>
         <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
         <link href="https://fonts.googleapis.com" rel="preconnect"/>
         <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
@@ -47,7 +48,8 @@
         <div class="flex flex-col min-h-screen">
             <!-- Header -->
             <header class="flex items-center justify-between h-16 px-4 lg:px-6 bg-white dark:bg-background-dark border-b border-gray-200 dark:border-gray-800">
-                <div>
+                <div class="flex items-center gap-3">
+                    <img src="{{ asset('logo/logo.png') }}" alt="Logo" class="h-8 w-auto"/>
                     <h1 class="text-lg lg:text-xl font-bold text-gray-800 dark:text-white">Portal Company</h1>
                 </div>
                 
@@ -63,7 +65,7 @@
                         </form>
                     </div>
                 @elseif(session('student_id'))
-                    <a href="{{ route('company-portal-login') }}" class="flex items-center gap-2 px-4 py-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+                    <a href="{{ route('login') }}" class="flex items-center gap-2 px-4 py-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
                         <span class="material-symbols-outlined text-lg">logout</span>
                         <span class="text-sm font-medium">Çıkış</span>
                     </a>
