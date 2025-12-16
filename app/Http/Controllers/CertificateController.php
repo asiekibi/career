@@ -616,7 +616,7 @@ class CertificateController extends Controller
             $rightMargin = 40; // Ders tipi için sağdan 40mm mesafe (45 -> 40, biraz sağa)
             $contentRightMargin = 24; // İçerik yazıları için daha sağa yakın (30 -> 24, daha sağa)
         } else {
-            $rightMargin = 35; // Kurs tipi için sağdan 35mm mesafe (30 -> 35, biraz sola)
+            $rightMargin = 40; // Kurs tipi için sağdan 40mm mesafe (35 -> 40, Register No'yu sola kaydırmak için)
             $contentRightMargin = 20; // İçerik yazıları için daha sağa yakın (26 -> 20, daha sağa)
         }
         $registerX = $size['width'] - $rightMargin;
