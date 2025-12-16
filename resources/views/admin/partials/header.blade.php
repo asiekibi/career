@@ -55,9 +55,6 @@
         <!-- Mobile admin information - Only visible on mobile -->
         <div class="lg:hidden px-6 py-4 border-b border-background-light dark:border-background-dark/70">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center">
-                    <span class="material-symbols-outlined text-gray-500">person</span>
-                </div>
                 <div>
                     <div class="text-sm font-medium text-gray-800 dark:text-white">Admin</div>
                     <div class="text-xs text-gray-500 dark:text-gray-400">Yönetici</div>
@@ -69,57 +66,43 @@
             
             <!-- Students menu - Same level as Certificates -->
             <a class="flex items-center gap-3 px-4 py-2 rounded-lg {{ request()->routeIs('admin.dashboard') ? 'bg-primary/10 text-primary font-medium' : 'text-gray-600 dark:text-gray-300 hover:bg-primary/10 dark:hover:bg-primary/20 hover:text-primary dark:hover:text-primary transition-colors' }}" href="{{ route('admin.dashboard') }}">
-                <span class="material-symbols-outlined">
-                    school
-                </span>
+              
                 Öğrenciler
             </a>
             
             <!-- CV'ler menu - Same level as Certificates -->
             <a class="flex items-center gap-3 px-4 py-2 rounded-lg {{ request()->routeIs('admin.cvs') ? 'bg-primary/10 text-primary font-medium' : 'text-gray-600 dark:text-gray-300 hover:bg-primary/10 dark:hover:bg-primary/20 hover:text-primary dark:hover:text-primary transition-colors' }}" href="{{ route('admin.cvs') }}">
-                <span class="material-symbols-outlined">
-                    description
-                </span>
+               
                 Sertifika ve Rozet Atama
             </a>
             
             <!-- Certificates menu - Same level as Certificates -->
             <a class="flex items-center gap-3 px-4 py-2 rounded-lg {{ request()->routeIs('admin.certificates') ? 'bg-primary/10 text-primary font-medium' : 'text-gray-600 dark:text-gray-300 hover:bg-primary/10 dark:hover:bg-primary/20 hover:text-primary dark:hover:text-primary transition-colors' }}" href="{{ route('admin.certificates') }}">
-                <span class="material-symbols-outlined">
-                    workspace_premium
-                </span>
+               
                 Yeni Sertifika Ekle
             </a>
             
             <!-- Badges menu - Same level as Certificates -->
             <a class="flex items-center gap-3 px-4 py-2 rounded-lg {{ request()->routeIs('admin.badges') ? 'bg-primary/10 text-primary font-medium' : 'text-gray-600 dark:text-gray-300 hover:bg-primary/10 dark:hover:bg-primary/20 hover:text-primary dark:hover:text-primary transition-colors' }}" href="{{ route('admin.badges') }}">
-                <span class="material-symbols-outlined">
-                    military_tech
-                </span>
+              
                 Rozet Ekle
             </a>
             
             <!-- Partner Companies menu - Yeni eklenen -->
             <a class="flex items-center gap-3 px-4 py-2 rounded-lg {{ request()->routeIs('admin.partner-companies') ? 'bg-primary/10 text-primary font-medium' : 'text-gray-600 dark:text-gray-300 hover:bg-primary/10 dark:hover:bg-primary/20 hover:text-primary dark:hover:text-primary transition-colors' }}" href="{{ route('admin.partner-companies') }}">
-                <span class="material-symbols-outlined">
-                    business
-                </span>
+               
                 Partner Firmalar
             </a>
             
             <!-- Instructor Card Requests menu -->
             <a class="flex items-center gap-3 px-4 py-2 rounded-lg {{ request()->routeIs('admin.instructor-card-requests') ? 'bg-primary/10 text-primary font-medium' : 'text-gray-600 dark:text-gray-300 hover:bg-primary/10 dark:hover:bg-primary/20 hover:text-primary dark:hover:text-primary transition-colors' }}" href="{{ route('admin.instructor-card-requests') }}">
-                <span class="material-symbols-outlined">
-                    badge
-                </span>
+             
                 Eğitmen Kimlik Kartı Talepleri
             </a>
             
             <!-- Job Listings menu -->
             <a class="flex items-center gap-3 px-4 py-2 rounded-lg {{ request()->routeIs('admin.job-listings*') ? 'bg-primary/10 text-primary font-medium' : 'text-gray-600 dark:text-gray-300 hover:bg-primary/10 dark:hover:bg-primary/20 hover:text-primary dark:hover:text-primary transition-colors' }}" href="{{ route('admin.job-listings.index') }}">
-                <span class="material-symbols-outlined">
-                    work
-                </span>
+               
                 İş İlanları
             </a>
         </nav>
