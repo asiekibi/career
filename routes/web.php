@@ -72,6 +72,7 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
         //admin.add-certificate
         Route::get('/students/{id}/assign-certificate', 'getAssignCertificate')->name('admin.students.assign-certificate');
         Route::post('/students/{id}/assign-certificate', 'storeAssignCertificate')->name('admin.students.assign-certificate.store');
+        Route::put('/students/certificate/{id}', 'updateAssignCertificate')->name('admin.students.certificate.update');
         Route::post('/students/remove-certificate', 'removeCertificate')->name('admin.students.remove-certificate');
         Route::get('/students/certificate/{id}/download', 'downloadCertificate')->name('admin.students.certificate.download');
         Route::get('/add-certificate/{id}', 'addCertificate')->name('admin.add-certificate');

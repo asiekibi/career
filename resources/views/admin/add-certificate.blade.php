@@ -168,7 +168,17 @@
                                 $courses = $certificate ? $certificate->certificateEducations : collect();
                                 $certificateLessons = $userCertificate->certificateLessons ?? collect();
                             @endphp
-                            <tr class="bg-white border-b dark:bg-background-dark/80 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-background-dark/90">
+                            <tr class="bg-white border-b dark:bg-background-dark/80 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-background-dark/90"
+                                data-certificate-id="{{ $userCertificate->id }}"
+                                data-certificate-code="{{ $userCertificate->certificate_code ?? '' }}"
+                                data-register-no="{{ $userCertificate->register_no ?? '' }}"
+                                data-password="{{ $userCertificate->password ?? '' }}"
+                                data-content1="{{ $userCertificate->content1 ?? '' }}"
+                                data-content2="{{ $userCertificate->content2 ?? '' }}"
+                                data-score="{{ $userCertificate->achievement_score ?? '' }}"
+                                data-issuer="{{ $userCertificate->issuing_institution ?? '' }}"
+                                data-issue-date="{{ $userCertificate->acquisition_date ? \Carbon\Carbon::parse($userCertificate->acquisition_date)->format('Y-m-d') : '' }}"
+                                data-validity-period="{{ $userCertificate->validity_period ?? '' }}">
                                 <th class="px-4 py-4 font-medium text-gray-900 dark:text-white break-words max-w-xs" scope="row">
                                     {{ $userCertificate->certificate->certificate_name ?? 'Bilinmeyen Sertifika' }}
                                 </th>
@@ -200,6 +210,12 @@
                                            title="Sertifikayı İndir">
                                             <span class="material-symbols-outlined">download</span>
                                         </a>
+                                        <button type="button" 
+                                                class="text-blue-600 dark:text-blue-500 hover:text-blue-800 dark:hover:text-blue-400"
+                                                onclick="openEditModal(this)"
+                                                title="Sertifikayı Düzenle">
+                                            <span class="material-symbols-outlined">edit</span>
+                                        </button>
                                         <button type="button" 
                                                 class="text-red-600 dark:text-red-500 hover:text-red-800 dark:hover:text-red-400"
                                                 onclick="confirmDeleteCertificate({{ $userCertificate->id }}, '{{ $user->name }}', '{{ $user->surname }}')"
@@ -276,7 +292,17 @@
                     $courses = $certificate ? $certificate->certificateEducations : collect();
                     $certificateLessons = $userCertificate->certificateLessons ?? collect();
                 @endphp
-                <div class="bg-white dark:bg-background-dark/50 rounded-lg shadow-sm p-4 border border-gray-200 dark:border-gray-700">
+                <div class="bg-white dark:bg-background-dark/50 rounded-lg shadow-sm p-4 border border-gray-200 dark:border-gray-700"
+                     data-certificate-id="{{ $userCertificate->id }}"
+                     data-certificate-code="{{ $userCertificate->certificate_code ?? '' }}"
+                     data-register-no="{{ $userCertificate->register_no ?? '' }}"
+                     data-password="{{ $userCertificate->password ?? '' }}"
+                     data-content1="{{ $userCertificate->content1 ?? '' }}"
+                     data-content2="{{ $userCertificate->content2 ?? '' }}"
+                     data-score="{{ $userCertificate->achievement_score ?? '' }}"
+                     data-issuer="{{ $userCertificate->issuing_institution ?? '' }}"
+                     data-issue-date="{{ $userCertificate->acquisition_date ? \Carbon\Carbon::parse($userCertificate->acquisition_date)->format('Y-m-d') : '' }}"
+                     data-validity-period="{{ $userCertificate->validity_period ?? '' }}">
                     <div class="flex items-start justify-between mb-4">
                         <div class="flex-1">
                             <h4 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
@@ -290,6 +316,12 @@
                                title="Sertifikayı İndir">
                                 <span class="material-symbols-outlined text-xl">download</span>
                             </a>
+                            <button type="button" 
+                                    class="text-blue-600 dark:text-blue-500 hover:text-blue-800 dark:hover:text-blue-400 p-2"
+                                    onclick="openEditModal(this)"
+                                    title="Sertifikayı Düzenle">
+                                <span class="material-symbols-outlined text-xl">edit</span>
+                            </button>
                             <button type="button" 
                                     class="text-red-600 dark:text-red-500 hover:text-red-800 dark:hover:text-red-400 p-2"
                                     onclick="confirmDeleteCertificate({{ $userCertificate->id }}, '{{ $user->name }}', '{{ $user->surname }}')"
@@ -410,6 +442,116 @@
 
 @include('admin.partials.footer')
 
+<!-- Edit Certificate Modal -->
+<div id="editCertificateModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+    <div class="relative top-20 mx-auto p-5 border w-full max-w-2xl shadow-lg rounded-md bg-white dark:bg-background-dark/90">
+        <div class="mt-3">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-2xl font-bold text-gray-900 dark:text-white">Sertifika Düzenle</h3>
+                <button type="button" onclick="closeEditModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            
+            <form id="editCertificateForm" method="POST">
+                @csrf
+                @method('PUT')
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white" for="edit_certificate_code">Sertifika Kodu</label>
+                        <input class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary dark:focus:border-primary" 
+                               id="edit_certificate_code" 
+                               name="certificate_code" 
+                               placeholder="örn: WG-12345" 
+                               type="text"/>
+                    </div>
+                    <div>
+                        <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white" for="edit_score">Başarı Puanı</label>
+                        <input class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary dark:focus:border-primary" 
+                               id="edit_score" 
+                               name="score" 
+                               placeholder="örn: 95" 
+                               type="number" 
+                               min="0"/>
+                    </div>
+                    <div>
+                        <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white" for="edit_issuer">Veren Kurum</label>
+                        <input class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary dark:focus:border-primary" 
+                               id="edit_issuer" 
+                               name="issuer" 
+                               placeholder="örn: Teknoloji Akademisi" 
+                               type="text"/>
+                    </div>
+                    <div>
+                        <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white" for="edit_issue_date">Veriliş Tarihi</label>
+                        <input class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary dark:focus:border-primary" 
+                               id="edit_issue_date" 
+                               name="issue_date" 
+                               placeholder="gg.aa.yyyy"
+                               type="text"/>
+                    </div>
+                    <div>
+                        <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white" for="edit_validity_period">Geçerlilik Süresi (Yıl)</label>
+                        <input class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary dark:focus:border-primary" 
+                               id="edit_validity_period" 
+                               name="validity_period" 
+                               placeholder="örn: 2" 
+                               type="number" 
+                               min="1" 
+                               max="10"/>
+                    </div>
+                    <div>
+                        <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white" for="edit_register_no">Register No</label>
+                        <input class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary dark:focus:border-primary" 
+                               id="edit_register_no" 
+                               name="register_no"
+                               placeholder="Numara girin" 
+                               type="text"/>
+                    </div>
+                    <div>
+                        <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white" for="edit_password">Şifre</label>
+                        <input class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary dark:focus:border-primary" 
+                               id="edit_password" 
+                               name="password"
+                               placeholder="6 haneli şifre" 
+                               type="text"
+                               maxlength="6"/>
+                    </div>
+                    <div>
+                        <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white" for="edit_content1">İçerik 1</label>
+                        <input class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary dark:focus:border-primary" 
+                               id="edit_content1" 
+                               name="content1"
+                               placeholder="İçerik 1 yazın"
+                               type="text"/>
+                    </div>
+                    <div>
+                        <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white" for="edit_content2">İçerik 2</label>
+                        <input class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary dark:focus:border-primary" 
+                               id="edit_content2" 
+                               name="content2"
+                               placeholder="İçerik 2 yazın"
+                               type="text"/>
+                    </div>
+                </div>
+                
+                <div class="mt-6 flex justify-end gap-3">
+                    <button type="button" 
+                            onclick="closeEditModal()"
+                            class="px-4 py-2 bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-400 dark:hover:bg-gray-500">
+                        İptal
+                    </button>
+                    <button type="submit" 
+                            class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90">
+                        Güncelle
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <!-- Flatpickr CSS -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 <!-- Flatpickr JS -->
@@ -521,6 +663,140 @@ function generatePassword() {
     const password = Math.floor(100000 + Math.random() * 900000).toString();
     document.getElementById('password').value = password;
 }
+
+// Open edit modal
+function openEditModal(button) {
+    // Find the parent row or card element
+    let row = button.closest('tr');
+    if (!row) {
+        row = button.closest('[data-certificate-id]');
+    }
+    
+    if (!row) return;
+    
+    // Get certificate data from data attributes
+    const certificateId = row.getAttribute('data-certificate-id');
+    const certificateCode = row.getAttribute('data-certificate-code') || '';
+    const registerNo = row.getAttribute('data-register-no') || '';
+    const password = row.getAttribute('data-password') || '';
+    const content1 = row.getAttribute('data-content1') || '';
+    const content2 = row.getAttribute('data-content2') || '';
+    const score = row.getAttribute('data-score') || '';
+    const issuer = row.getAttribute('data-issuer') || '';
+    const issueDate = row.getAttribute('data-issue-date') || '';
+    const validityPeriod = row.getAttribute('data-validity-period') || '';
+    
+    // Fill form fields
+    document.getElementById('edit_certificate_code').value = certificateCode;
+    document.getElementById('edit_score').value = score;
+    document.getElementById('edit_issuer').value = issuer;
+    document.getElementById('edit_register_no').value = registerNo;
+    document.getElementById('edit_password').value = password;
+    document.getElementById('edit_content1').value = content1;
+    document.getElementById('edit_content2').value = content2;
+    document.getElementById('edit_validity_period').value = validityPeriod;
+    
+    // Format date for display
+    if (issueDate) {
+        const date = new Date(issueDate);
+        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const year = date.getFullYear();
+        document.getElementById('edit_issue_date').value = `${day}.${month}.${year}`;
+    } else {
+        document.getElementById('edit_issue_date').value = '';
+    }
+    
+    // Set form action
+    document.getElementById('editCertificateForm').action = '{{ route("admin.students.certificate.update", ":id") }}'.replace(':id', certificateId);
+    
+    // Initialize flatpickr for edit date if not already initialized
+    if (!window.editDatePicker) {
+        const editIssueDateInput = document.getElementById('edit_issue_date');
+        window.editDatePicker = flatpickr(editIssueDateInput, {
+            locale: "tr",
+            dateFormat: "Y-m-d",
+            altInput: false,
+            allowInput: true,
+            placeholder: "gg.aa.yyyy",
+            parseDate: (datestr, format) => {
+                const parts = datestr.split('.');
+                if (parts.length === 3) {
+                    const day = parseInt(parts[0], 10);
+                    const month = parseInt(parts[1], 10) - 1;
+                    const year = parseInt(parts[2], 10);
+                    return new Date(year, month, day);
+                }
+                return null;
+            },
+            onChange: function(selectedDates, dateStr, instance) {
+                if (selectedDates.length > 0) {
+                    const date = selectedDates[0];
+                    const day = String(date.getDate()).padStart(2, '0');
+                    const month = String(date.getMonth() + 1).padStart(2, '0');
+                    const year = date.getFullYear();
+                    instance.input.value = `${day}.${month}.${year}`;
+                }
+            }
+        });
+    } else {
+        // Update existing flatpickr instance
+        if (issueDate) {
+            const date = new Date(issueDate);
+            window.editDatePicker.setDate(date, false);
+        } else {
+            window.editDatePicker.clear();
+        }
+    }
+    
+    // Show modal
+    document.getElementById('editCertificateModal').classList.remove('hidden');
+}
+
+// Close edit modal
+function closeEditModal() {
+    document.getElementById('editCertificateModal').classList.add('hidden');
+}
+
+// Handle edit form submission
+document.addEventListener('DOMContentLoaded', function() {
+    const editForm = document.getElementById('editCertificateForm');
+    if (editForm) {
+        editForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Format date before submit
+            if (window.editDatePicker && window.editDatePicker.selectedDates.length > 0) {
+                const date = window.editDatePicker.selectedDates[0];
+                const day = String(date.getDate()).padStart(2, '0');
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const year = date.getFullYear();
+                document.getElementById('edit_issue_date').value = `${year}-${month}-${day}`;
+            } else if (document.getElementById('edit_issue_date').value && document.getElementById('edit_issue_date').value.includes('.')) {
+                const parts = document.getElementById('edit_issue_date').value.split('.');
+                if (parts.length === 3) {
+                    const day = parts[0].padStart(2, '0');
+                    const month = parts[1].padStart(2, '0');
+                    const year = parts[2];
+                    document.getElementById('edit_issue_date').value = `${year}-${month}-${day}`;
+                }
+            }
+            
+            // Submit form
+            this.submit();
+        });
+    }
+    
+    // Close modal on outside click
+    const modal = document.getElementById('editCertificateModal');
+    if (modal) {
+        modal.addEventListener('click', function(e) {
+            if (e.target === modal) {
+                closeEditModal();
+            }
+        });
+    }
+});
 
 // SweetAlert2 with certificate delete confirmation
 function confirmDeleteCertificate(certificateId, userName, userSurname) {
