@@ -253,11 +253,18 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(data => {
                 if (data.success) {
                     countrySelect.innerHTML = '<option value="">Ülke Seçin</option>';
+                    let turkeyId = null;
+                    
                     data.data.forEach(country => {
                         const option = document.createElement('option');
                         option.value = country.id;
                         option.textContent = country.name;
                         countrySelect.appendChild(option);
+                        
+                        // Türkiye'yi bul
+                        if (country.name.toLowerCase() === 'türkiye' || country.name.toLowerCase() === 'turkey' || country.name.toLowerCase() === 'turkiye') {
+                            turkeyId = country.id;
+                        }
                     });
                     
                     // Edit modunda seçili değerleri yükle
@@ -269,6 +276,16 @@ document.addEventListener('DOMContentLoaded', function() {
                         if (userCountryId) {
                             countrySelect.value = userCountryId;
                             loadCitiesByCountry(userCountryId, userCityId);
+                        } else if (turkeyId) {
+                            // Eğer kullanıcının ülkesi yoksa Türkiye'yi seç
+                            countrySelect.value = turkeyId;
+                            loadCitiesByCountry(turkeyId);
+                        }
+                    @else
+                        // Yeni öğrenci ekleme modunda Türkiye'yi varsayılan olarak seç
+                        if (turkeyId) {
+                            countrySelect.value = turkeyId;
+                            loadCitiesByCountry(turkeyId);
                         }
                     @endif
                 }

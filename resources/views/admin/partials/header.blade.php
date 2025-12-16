@@ -48,8 +48,7 @@
 
     <!-- left panel - Desktop normal, mobile hamburger menu -->
     <aside id="sidebar" class="w-64 bg-white dark:bg-background-dark/50 border-r border-background-light dark:border-background-dark/70 flex flex-col fixed lg:static inset-y-0 left-0 z-50 transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out">
-        <div class="p-6 flex items-center gap-3">
-            <img src="{{ asset('logo/logo.png') }}" alt="Logo" class="h-8 w-auto"/>
+        <div class="p-6">
             <h1 class="text-xl font-bold text-gray-800 dark:text-white">Yönetim Paneli</h1>
         </div>
 

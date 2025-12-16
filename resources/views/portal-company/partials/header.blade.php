@@ -48,8 +48,7 @@
         <div class="flex flex-col min-h-screen">
             <!-- Header -->
             <header class="flex items-center justify-between h-16 px-4 lg:px-6 bg-white dark:bg-background-dark border-b border-gray-200 dark:border-gray-800">
-                <div class="flex items-center gap-3">
-                    <img src="{{ asset('logo/logo.png') }}" alt="Logo" class="h-8 w-auto"/>
+                <div>
                     <h1 class="text-lg lg:text-xl font-bold text-gray-800 dark:text-white">Portal Company</h1>
                 </div>
                 
