@@ -48,7 +48,7 @@
                         @endforeach
                     </select>
                 </div>
-                <div>
+                <div class="hidden">
                     <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white" for="certificate_code">Sertifika Kodu</label>
                     <input class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary dark:focus:border-primary @error('certificate_code') border-red-500 @enderror" 
                            id="certificate_code" 
@@ -70,7 +70,7 @@
                 </div>
                 <div>
                     <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white" for="issuer">Veren Kurum</label>
-                    <input class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary dark:focus:border-primary" id="issuer" name="issuer" placeholder="örn: Teknoloji Akademisi" type="text"/>
+                    <input class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary dark:focus:border-primary" id="issuer" name="issuer" placeholder="örn: Teknoloji Akademisi" type="text" value="Australia Sports Institute & Fitness Academy"/>
                 </div>
                 <div>
                     <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white" for="issue_date">Veriliş Tarihi</label>
@@ -80,7 +80,7 @@
                            placeholder="gg.aa.yyyy"
                            type="text"/>
                 </div>
-                <div>
+                <div class="hidden">
                     <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white" for="validity_period">Geçerlilik Süresi (Yıl)</label>
                     <input class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary dark:focus:border-primary" id="validity_period" name="validity_period" placeholder="örn: 2" type="number" min="1" max="10"/>
                 </div>
@@ -102,14 +102,13 @@
                         <input class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary dark:focus:border-primary" 
                                id="password" 
                                name="password"
-                               placeholder="6 haneli şifre" 
+                               placeholder="6 haneli şifre girin" 
                                type="text"
-                               maxlength="6"
-                               readonly/>
+                               maxlength="6"/>
                         <button type="button" 
                                 onclick="generatePassword()"
-                                class="text-white bg-primary hover:bg-primary/90 focus:ring-4 focus:outline-none focus:ring-primary/50 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary dark:hover:bg-primary/90 dark:focus:ring-primary/80 whitespace-nowrap">
-                            Şifre Üret
+                                class="px-4 py-2.5 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary/90 focus:ring-4 focus:outline-none focus:ring-primary/50 dark:bg-primary dark:hover:bg-primary/90 dark:focus:ring-primary/80">
+                            Üret
                         </button>
                     </div>
                 </div>
@@ -149,7 +148,6 @@
                     <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                         <tr>
                             <th class="px-4 py-3" scope="col">Sertifika Adı</th>
-                            <th class="px-4 py-3" scope="col">Sertifika Kodu</th>
                             <th class="px-4 py-3" scope="col">Register No</th>
                             <th class="px-4 py-3" scope="col">Şifre</th>
                             <th class="px-4 py-3" scope="col">İçerik 1</th>
@@ -182,7 +180,6 @@
                                 <th class="px-4 py-4 font-medium text-gray-900 dark:text-white break-words max-w-xs" scope="row">
                                     {{ $userCertificate->certificate->certificate_name ?? 'Bilinmeyen Sertifika' }}
                                 </th>
-                                <td class="px-4 py-4 break-words">{{ $userCertificate->certificate_code ?? 'Belirtilmemiş' }}</td>
                                 <td class="px-4 py-4">{{ $userCertificate->register_no ?? 'Belirtilmemiş' }}</td>
                                 <td class="px-4 py-4">{{ $userCertificate->password ?? 'Belirtilmemiş' }}</td>
                                 <td class="px-4 py-4 break-words max-w-xs">{{ $userCertificate->content1 ?? 'Belirtilmemiş' }}</td>
@@ -248,7 +245,7 @@
                                     }
                                 @endphp
                                 <tr class="bg-gray-50 dark:bg-gray-800/50">
-                                    <td colspan="11" class="px-4 py-4">
+                                    <td colspan="10" class="px-4 py-4">
                                         <div class="ml-4">
                                             <h5 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Dersler ve Puanları:</h5>
                                             <div class="space-y-1">
@@ -274,7 +271,7 @@
                             @endif
                         @empty
                             <tr>
-                                <td colspan="11" class="px-4 py-4 text-center text-gray-500 dark:text-gray-400">
+                                <td colspan="10" class="px-4 py-4 text-center text-gray-500 dark:text-gray-400">
                                     Henüz atanmış sertifika bulunmuyor.
                                 </td>
                             </tr>
@@ -332,10 +329,6 @@
                     </div>
                     
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-                        <div>
-                            <span class="text-gray-500 dark:text-gray-400 font-medium">Sertifika Kodu:</span>
-                            <p class="text-gray-900 dark:text-white mt-1">{{ $userCertificate->certificate_code ?? 'Belirtilmemiş' }}</p>
-                        </div>
                         <div>
                             <span class="text-gray-500 dark:text-gray-400 font-medium">Register No:</span>
                             <p class="text-gray-900 dark:text-white mt-1">{{ $userCertificate->register_no ?? 'Belirtilmemiş' }}</p>
@@ -458,7 +451,7 @@
                 @method('PUT')
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
+                    <div class="hidden">
                         <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white" for="edit_certificate_code">Sertifika Kodu</label>
                         <input class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary dark:focus:border-primary" 
                                id="edit_certificate_code" 
@@ -481,7 +474,8 @@
                                id="edit_issuer" 
                                name="issuer" 
                                placeholder="örn: Teknoloji Akademisi" 
-                               type="text"/>
+                               type="text"
+                               value="Australia Sports Institute & Fitness Academy"/>
                     </div>
                     <div>
                         <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white" for="edit_issue_date">Veriliş Tarihi</label>
@@ -491,7 +485,7 @@
                                placeholder="gg.aa.yyyy"
                                type="text"/>
                     </div>
-                    <div>
+                    <div class="hidden">
                         <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white" for="edit_validity_period">Geçerlilik Süresi (Yıl)</label>
                         <input class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary dark:focus:border-primary" 
                                id="edit_validity_period" 
@@ -511,12 +505,19 @@
                     </div>
                     <div>
                         <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white" for="edit_password">Şifre</label>
-                        <input class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary dark:focus:border-primary" 
-                               id="edit_password" 
-                               name="password"
-                               placeholder="6 haneli şifre" 
-                               type="text"
-                               maxlength="6"/>
+                        <div class="flex gap-2">
+                            <input class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary dark:focus:border-primary" 
+                                   id="edit_password" 
+                                   name="password"
+                                   placeholder="6 haneli şifre" 
+                                   type="text"
+                                   maxlength="6"/>
+                            <button type="button" 
+                                    onclick="generateEditPassword()"
+                                    class="px-4 py-2.5 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary/90 focus:ring-4 focus:outline-none focus:ring-primary/50 dark:bg-primary dark:hover:bg-primary/90 dark:focus:ring-primary/80">
+                                Üret
+                            </button>
+                        </div>
                     </div>
                     <div>
                         <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white" for="edit_content1">İçerik 1</label>
@@ -658,10 +659,16 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-// Generate 6-digit random password
+// Generate random 6-digit password
 function generatePassword() {
     const password = Math.floor(100000 + Math.random() * 900000).toString();
     document.getElementById('password').value = password;
+}
+
+// Generate random 6-digit password for edit modal
+function generateEditPassword() {
+    const password = Math.floor(100000 + Math.random() * 900000).toString();
+    document.getElementById('edit_password').value = password;
 }
 
 // Open edit modal
@@ -689,7 +696,7 @@ function openEditModal(button) {
     // Fill form fields
     document.getElementById('edit_certificate_code').value = certificateCode;
     document.getElementById('edit_score').value = score;
-    document.getElementById('edit_issuer').value = issuer;
+    document.getElementById('edit_issuer').value = issuer || 'Australia Sports Institute & Fitness Academy';
     document.getElementById('edit_register_no').value = registerNo;
     document.getElementById('edit_password').value = password;
     document.getElementById('edit_content1').value = content1;

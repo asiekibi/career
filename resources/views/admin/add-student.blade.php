@@ -92,6 +92,22 @@
                         <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Kayıt numarası otomatik oluşturulur ve değiştirilemez.</p>
                     </div>
                 @endif
+
+                <!-- TC Kimlik No -->
+                <div>
+                    <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white" for="tc_num">TC Kimlik No</label>
+                    <input class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary dark:focus:border-primary @error('tc_num') border-red-500 @enderror" 
+                           id="tc_num" 
+                           name="tc_num" 
+                           placeholder="11 haneli TC kimlik numarası" 
+                           value="{{ old('tc_num', isset($user) ? $user->tc_num : '') }}" 
+                           type="text"
+                           maxlength="11"
+                           pattern="[0-9]{11}"/>
+                    @error('tc_num')
+                        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                    @enderror
+                </div>
             </div>
             
             <!-- country, city, district - 3 columns in one row -->
@@ -189,14 +205,35 @@ function isPhoneNumber(event) {
     return true;
 }
 
-// Input event listener ile gerçek zamanlı kontrol
-document.addEventListener('DOMContentLoaded', function() {
-    const gsmInput = document.getElementById('gsm');
-    
-    gsmInput.addEventListener('input', function(e) {
-        // Sadece sayı, +, -, (, ), boşluk karakterlerine izin ver
-        this.value = this.value.replace(/[^0-9+\s\-\(\)]/g, '');
-    });
+    // Input event listener ile gerçek zamanlı kontrol
+    document.addEventListener('DOMContentLoaded', function() {
+        const gsmInput = document.getElementById('gsm');
+        const tcNumInput = document.getElementById('tc_num');
+        
+        gsmInput.addEventListener('input', function(e) {
+            // Sadece sayı, +, -, (, ), boşluk karakterlerine izin ver
+            this.value = this.value.replace(/[^0-9+\s\-\(\)]/g, '');
+        });
+        
+        // TC numarası için sadece sayı girişi
+        if (tcNumInput) {
+            tcNumInput.addEventListener('input', function(e) {
+                this.value = this.value.replace(/[^0-9]/g, '');
+            });
+            
+            tcNumInput.addEventListener('keypress', function(e) {
+                const allowedKeys = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+                const specialKeys = ['Backspace', 'Delete', 'Tab', 'Escape', 'Enter', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'];
+                
+                if (specialKeys.includes(e.key)) {
+                    return;
+                }
+                
+                if (!allowedKeys.includes(e.key)) {
+                    e.preventDefault();
+                }
+            });
+        }
     
     gsmInput.addEventListener('keypress', function(e) {
         // Enter tuşu hariç diğer özel karakterleri engelle

@@ -82,6 +82,15 @@
                                     <option value="0" {{ !$user->contact_info ? 'selected' : '' }}>Kapalı</option>
                                 </select>
                             </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300" for="tcNum">TC Kimlik No</label>
+                                <input class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary dark:bg-gray-800 dark:border-gray-600 dark:text-white sm:text-sm" 
+                                       id="tcNum" 
+                                       type="text" 
+                                       value="{{ $user->tc_num ?? '' }}"
+                                       maxlength="11"
+                                       pattern="[0-9]{11}"/>
+                            </div>
                         </div>
                     </div>
 
@@ -303,6 +312,7 @@
                                         <th class="px-6 py-3" scope="col">Kodu</th>
                                         <th class="px-6 py-3" scope="col">Derecesi</th>
                                         <th class="px-6 py-3" scope="col">Kurum</th>
+                                        <th class="px-6 py-3" scope="col">Şifre</th>
                                         <th class="px-6 py-3" scope="col">İşlemler</th>
                                     </tr>
                                 </thead>
@@ -326,6 +336,7 @@
                                             <td class="px-6 py-4">{{ $userCertificate->certificate_code ?? 'Belirtilmemiş' }}</td>
                                             <td class="px-6 py-4">{{ $userCertificate->achievement_score ?? 'Belirtilmemiş' }}</td>
                                             <td class="px-6 py-4">{{ $userCertificate->issuing_institution ?? 'Belirtilmemiş' }}</td>
+                                            <td class="px-6 py-4">{{ $userCertificate->password ?? 'Belirtilmemiş' }}</td>
                                             <td class="px-6 py-4">
                                                 <a href="{{ route('certificate.download', $userCertificate->id) }}" 
                                                    target="_blank"
@@ -344,7 +355,7 @@
                                                 $remainder = $courseCount > 0 ? $totalScore % $courseCount : 0;
                                             @endphp
                                             <tr class="bg-gray-50 dark:bg-gray-800/50">
-                                                <td colspan="5" class="px-6 py-4">
+                                                <td colspan="6" class="px-6 py-4">
                                                     <div class="ml-4">
                                                         <h5 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Dersler:</h5>
                                                         <div class="space-y-1">
@@ -1113,13 +1124,15 @@
 document.getElementById('saveProfileBtn').addEventListener('click', function() {
     const phone = document.getElementById('phone').value;
     const email = document.getElementById('email').value;
-    const contactInfo = document.getElementById('contactInfo').value; // Yeni eklenen alan
+    const contactInfo = document.getElementById('contactInfo').value;
+    const tcNum = document.getElementById('tcNum').value;
     
     const formData = new FormData();
     formData.append('_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
     formData.append('gsm', phone);
     formData.append('email', email);
-    formData.append('contact_info', contactInfo); // Yeni eklenen alan
+    formData.append('contact_info', contactInfo);
+    formData.append('tc_num', tcNum);
     
     // Loading göster
     this.innerHTML = '<span class="material-symbols-outlined text-base animate-spin">refresh</span>';
@@ -1161,6 +1174,9 @@ document.getElementById('saveProfileBtn').addEventListener('click', function() {
                             break;
                         case 'contact_info':
                             inputId = 'contactInfo';
+                            break;
+                        case 'tc_num':
+                            inputId = 'tcNum';
                             break;
                     }
                     
@@ -1225,4 +1241,25 @@ document.getElementById('phone').addEventListener('keypress', function(e) {
         e.preventDefault();
     }
 });
+
+// TC numarası input event listener - sadece sayı girişi
+const tcNumInput = document.getElementById('tcNum');
+if (tcNumInput) {
+    tcNumInput.addEventListener('input', function(e) {
+        this.value = this.value.replace(/[^0-9]/g, '');
+    });
+    
+    tcNumInput.addEventListener('keypress', function(e) {
+        const allowedKeys = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+        const specialKeys = ['Backspace', 'Delete', 'Tab', 'Escape', 'Enter', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'];
+        
+        if (specialKeys.includes(e.key)) {
+            return;
+        }
+        
+        if (!allowedKeys.includes(e.key)) {
+            e.preventDefault();
+        }
+    });
+}
 </script>

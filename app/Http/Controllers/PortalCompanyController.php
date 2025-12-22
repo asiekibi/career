@@ -9,12 +9,21 @@ use App\Models\Certificate;
 use App\Models\Country;
 use App\Models\Location;
 use Illuminate\View\View;
+use Illuminate\Http\RedirectResponse;
 use App\Models\PartnerCompany;
 use App\Models\CompanyRequest;
 use Illuminate\Support\Facades\Auth;
 
 class PortalCompanyController extends Controller
 {
+    /**
+     * Show company portal login page
+     */
+    public function showPortalLogin(): View
+    {
+        return view('portal-company.portal-login');
+    }
+
     /**
      * Company login - Email ve şifre ile normal auth girişi
      */
@@ -118,19 +127,31 @@ class PortalCompanyController extends Controller
     }
 
     /**
-     * Show main page - CV görüntüleme sayfası
+     * Show main page - CV görüntüleme sayfası (Firma girişi veya öğrenci session'ı ile)
      */
-    public function showMain(): View
+    public function showMain(): View|RedirectResponse
     {
+        // Firma girişi kontrolü
         if (Auth::check() && Auth::user()->role === 'company') {
             $company = Auth::user();
+            
+            // Firma onaylı mı kontrol et
+            if (!$company->company_approved) {
+                return redirect()->route('login')->withErrors(['error' => 'Firma hesabınız henüz onaylanmamış.']);
+            }
+
+            // Firma aktif mi kontrol et
+            if (!$company->is_active) {
+                return redirect()->route('login')->withErrors(['error' => 'Firma hesabınız aktif değil.']);
+            }
+
             $companyName = $company->name . ' ' . $company->surname;
             $isCompanyAuth = true;
             $loginType = 'company';
             
             $users = User::where('role', 'user')
                 ->whereNull('deleted_at')
-                ->with(['userBadges.badge', 'cvs', 'userCertificates.certificate', 'country', 'location.country'])
+                ->with(['userBadges.badge', 'cvs', 'userCertificates.certificate', 'country', 'location.country', 'location.parent'])
                 ->orderBy('name', 'asc')
                 ->get();
             
@@ -148,21 +169,49 @@ class PortalCompanyController extends Controller
             return view('portal-company.main', compact('users', 'certificates', 'countries', 'locations', 'companyName', 'isCompanyAuth', 'loginType'));
         }
         
+        // Öğrenci session kontrolü - portal-user/portal-login.blade.php'den gelen sorgulama için
         $studentId = session('student_id');
         if ($studentId) {
-            $student = User::where('id', $studentId)
-                ->with(['cvs.experiences', 'cvs.educations', 'cvs.abilities', 'cvs.languages', 'userBadges.badge', 'userCertificates.certificate'])
-                ->firstOrFail();
+            try {
+                $student = User::where('id', $studentId)
+                    ->with(['cvs.experiences', 'cvs.educations', 'cvs.abilities', 'cvs.languages', 'userBadges.badge', 'userCertificates.certificate'])
+                    ->firstOrFail();
 
-            $companyName = session('company_name');
-            $isCompanyAuth = session('is_company_auth', false);
-            $loginType = session('login_type', 'student');
+                $companyName = session('company_name');
+                $isCompanyAuth = session('is_company_auth', false);
+                $loginType = session('login_type', 'student');
 
-            return view('portal-company.main', compact('student', 'loginType', 'companyName', 'isCompanyAuth'));
+                // Firma girişi için CV listesi göster
+                $users = User::where('role', 'user')
+                    ->whereNull('deleted_at')
+                    ->with(['userBadges.badge', 'cvs', 'userCertificates.certificate', 'country', 'location.country', 'location.parent'])
+                    ->orderBy('name', 'asc')
+                    ->get();
+                
+                // Tüm sertifikaları filtreleme için getir
+                $certificates = Certificate::orderBy('certificate_name', 'asc')->get();
+                
+                // Tüm ülkeleri filtreleme için getir
+                $countries = Country::orderBy('name', 'asc')->get();
+                
+                // Tüm illeri filtreleme için getir (parent_id = 0 olanlar)
+                $locations = Location::where('parent_id', 0)
+                    ->orderBy('location', 'asc')
+                    ->get();
+
+                // Firma girişi gibi göster (CV listesi)
+                $loginType = 'company';
+                
+                return view('portal-company.main', compact('users', 'certificates', 'countries', 'locations', 'companyName', 'isCompanyAuth', 'loginType'));
+            } catch (\Exception $e) {
+                // Öğrenci bulunamazsa session'ı temizle ve login sayfasına yönlendir
+                session()->forget(['student_id', 'searched_certificate_id', 'is_company_auth', 'company_name', 'login_type']);
+                return redirect()->route('login')->withErrors(['error' => 'Öğrenci bilgileri bulunamadı. Lütfen tekrar giriş yapın.']);
+            }
         }
         
-        // 
-        return redirect()->route('login');
+        // Hiçbir giriş yoksa login sayfasına yönlendir
+        return redirect()->route('login')->withErrors(['error' => 'Giriş yapmanız gerekmektedir.']);
     }
 
     /**

@@ -14,6 +14,7 @@ class PortalAuth
         $allowedRoutes = [
             'portal-login',
             'portal.search',
+            'company-portal.login-page',
             'company-portal.login',
             'company-portal.search'
         ];

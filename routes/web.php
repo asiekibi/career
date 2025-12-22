@@ -157,7 +157,9 @@ Route::prefix('student-portal')->middleware('portal.auth')->controller(PortalStu
     Route::get('/', 'showPortalLogin')->name('portal-login');
     Route::post('/search', 'searchCertificate')->name('portal.search');
     Route::get('/student-cv/{userId}', 'showStudentCv')->name('portal.student.cv');
-    // Kariyer sıralaması ve partner firma route'ları kaldırıldı
+    Route::get('/career-sequence', 'careerSequence')->name('portal.career-sequence');
+    Route::get('/partner-company', 'partnerCompany')->name('portal.partner-company');
+    Route::post('/partner-company', 'storePartnerCompany')->name('portal.partner-company.store');
 });
 
 // Public certificate download route (for portals and users)
@@ -172,6 +174,7 @@ Route::post('/company-request', [PortalCompanyController::class, 'storeCompanyRe
 
 // Company Portal routes - prefix ile grupla
 Route::prefix('company-portal')->middleware('portal.auth')->controller(PortalCompanyController::class)->group(function () {
+    Route::get('/', 'showPortalLogin')->name('company-portal.login-page');
     Route::post('/login', 'login')->name('company-portal.login');
     Route::post('/search', 'searchCertificate')->name('company-portal.search');
     Route::get('/main', 'showMain')->name('company-portal.main');

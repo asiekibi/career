@@ -11,8 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('certificate_educations', function (Blueprint $table) {
-            $table->integer('puanlar')->nullable()->after('course_name');
+        Schema::table('user_certificates', function (Blueprint $table) {
+            $table->string('certificate_code')->nullable()->change();
         });
     }
 
@@ -21,28 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('certificate_educations', function (Blueprint $table) {
-            $table->dropColumn('puanlar');
+        Schema::table('user_certificates', function (Blueprint $table) {
+            $table->string('certificate_code')->nullable(false)->change();
         });
     }
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

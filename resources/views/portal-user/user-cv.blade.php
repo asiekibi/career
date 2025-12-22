@@ -240,15 +240,9 @@
                         <div class="p-4 lg:p-6">
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
-                                    <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Sertifika Kodu:</span>
-                                    <p class="text-gray-900 dark:text-white font-semibold mt-1">{{ $searchedCertificate->certificate_code ?? 'Belirtilmemiş' }}</p>
-                                </div>
-                                @if($searchedCertificate->register_no)
-                                <div>
                                     <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Register No:</span>
-                                    <p class="text-gray-900 dark:text-white font-semibold mt-1">{{ $searchedCertificate->register_no }}</p>
+                                    <p class="text-gray-900 dark:text-white font-semibold mt-1">{{ $searchedCertificate->register_no ?? 'Belirtilmemiş' }}</p>
                                 </div>
-                                @endif
                                 @if($searchedCertificate->acquisition_date)
                                 <div>
                                     <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Veriliş Tarihi:</span>
@@ -292,7 +286,7 @@
                             <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                                 <tr>
                                     <th class="px-6 py-3" scope="col">Sertifika Adı</th>
-                                    <th class="px-6 py-3" scope="col">Kodu</th>
+                                    <th class="px-6 py-3" scope="col">Register No</th>
                                     <th class="px-6 py-3" scope="col">Derecesi</th>
                                     <th class="px-6 py-3" scope="col">Kurum</th>
                                     <th class="px-6 py-3" scope="col">İşlemler</th>
@@ -304,7 +298,7 @@
                                         <th class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white" scope="row">
                                             {{ $userCertificate->certificate->certificate_name ?? 'Sertifika adı bulunamadı' }}
                                         </th>
-                                        <td class="px-6 py-4">{{ $userCertificate->certificate_code ?? 'Belirtilmemiş' }}</td>
+                                        <td class="px-6 py-4">{{ $userCertificate->register_no ?? 'Belirtilmemiş' }}</td>
                                         <td class="px-6 py-4">{{ $userCertificate->achievement_score ?? 'Belirtilmemiş' }}</td>
                                         <td class="px-6 py-4">{{ $userCertificate->issuing_institution ?? 'Belirtilmemiş' }}</td>
                                         <td class="px-6 py-4">
@@ -332,8 +326,8 @@
                                     </div>
                                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                         <div>
-                                            <span class="text-gray-500 dark:text-gray-400 text-sm">Kod:</span>
-                                            <p class="text-gray-900 dark:text-white">{{ $userCertificate->certificate_code ?? 'Belirtilmemiş' }}</p>
+                                            <span class="text-gray-500 dark:text-gray-400 text-sm">Register No:</span>
+                                            <p class="text-gray-900 dark:text-white">{{ $userCertificate->register_no ?? 'Belirtilmemiş' }}</p>
                                         </div>
                                         <div>
                                             <span class="text-gray-500 dark:text-gray-400 text-sm">Derece:</span>

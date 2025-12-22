@@ -225,7 +225,6 @@
                             <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                                 <tr>
                                     <th class="px-6 py-3" scope="col">Sertifika Adı</th>
-                                    <th class="px-6 py-3" scope="col">Kodu</th>
                                     <th class="px-6 py-3" scope="col">Derecesi</th>
                                     <th class="px-6 py-3" scope="col">Kurum</th>
                                     <th class="px-6 py-3" scope="col">İşlemler</th>
@@ -247,7 +246,6 @@
                                         <th class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white" scope="row">
                                             {{ $userCertificate->certificate->certificate_name ?? 'Sertifika adı bulunamadı' }}
                                         </th>
-                                        <td class="px-6 py-4">{{ $userCertificate->certificate_code ?? 'Belirtilmemiş' }}</td>
                                         <td class="px-6 py-4">{{ $userCertificate->achievement_score ?? 'Belirtilmemiş' }}</td>
                                         <td class="px-6 py-4">{{ $userCertificate->issuing_institution ?? 'Belirtilmemiş' }}</td>
                                         <td class="px-6 py-4">
@@ -268,7 +266,7 @@
                                             $remainder = $courseCount > 0 ? $totalScore % $courseCount : 0;
                                         @endphp
                                         <tr class="bg-gray-50 dark:bg-gray-800/50">
-                                            <td colspan="5" class="px-6 py-4">
+                                            <td colspan="4" class="px-6 py-4">
                                                 <div class="ml-4">
                                                     <h5 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Dersler:</h5>
                                                     <div class="space-y-1">

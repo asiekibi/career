@@ -6,6 +6,7 @@ use App\Models\Certificate;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Log;
 use Illuminate\View\View;
 use App\Models\CertificateEducation;
 use App\Models\CertificateLesson;
@@ -263,12 +264,28 @@ class CertificateController extends Controller
         // Determine total score (use provided score or generate random)
         $totalScore = $request->score ?? rand(60, 100);
         
+        // Sertifika şifresi
+        $certificatePassword = $request->password;
+        
+        // Certificate code - boş ise null yap
+        $certificateCode = !empty(trim($request->certificate_code)) ? $request->certificate_code : null;
+        
+        // Log'a sertifika şifresini ekle
+        Log::info('Sertifika Oluşturuldu', [
+            'user_id' => $user->id,
+            'user_name' => $user->name . ' ' . $user->surname,
+            'user_email' => $user->email,
+            'certificate_id' => $request->certificate_id,
+            'certificate_code' => $certificateCode,
+            'sertifika_sifresi' => $certificatePassword,
+        ]);
+        
         // Assign certificate
         $userCertificate = $user->userCertificates()->create([
             'certificate_id' => $request->certificate_id,
-            'certificate_code' => $request->certificate_code,
+            'certificate_code' => $certificateCode,
             'register_no' => $request->register_no,
-            'password' => $request->password,
+            'password' => $certificatePassword,
             'content1' => $request->content1,
             'content2' => $request->content2,
             'achievement_score' => $totalScore,
@@ -358,11 +375,27 @@ class CertificateController extends Controller
         // Yeni puanı belirle
         $newScore = $request->score ?? $oldScore;
         
+        // Sertifika şifresi
+        $certificatePassword = $request->password ?? $userCertificate->password;
+        
+        // Certificate code - boş ise null yap
+        $certificateCode = !empty(trim($request->certificate_code)) ? $request->certificate_code : null;
+        
+        // Log'a sertifika şifresini ekle
+        Log::info('Sertifika Güncellendi', [
+            'user_certificate_id' => $userCertificate->id,
+            'user_id' => $user->id,
+            'user_name' => $user->name . ' ' . $user->surname,
+            'user_email' => $user->email,
+            'certificate_code' => $certificateCode,
+            'sertifika_sifresi' => $certificatePassword,
+        ]);
+        
         // Güncellenecek alanları hazırla
         $updateData = [
-            'certificate_code' => $request->certificate_code,
+            'certificate_code' => $certificateCode,
             'register_no' => $request->register_no,
-            'password' => $request->password,
+            'password' => $certificatePassword,
             'content1' => $request->content1,
             'content2' => $request->content2,
             'issuing_institution' => $request->issuer,

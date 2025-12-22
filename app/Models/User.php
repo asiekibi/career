@@ -31,6 +31,7 @@ class User extends Authenticatable
         'birth_date',
         'gsm',
         'register_number',
+        'tc_num',
         'point',
         'location_id',
         'district_id',

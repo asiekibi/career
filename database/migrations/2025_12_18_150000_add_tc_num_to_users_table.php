@@ -11,8 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('certificate_educations', function (Blueprint $table) {
-            $table->integer('puanlar')->nullable()->after('course_name');
+        Schema::table('users', function (Blueprint $table) {
+            $table->string('tc_num')->nullable()->after('register_number');
         });
     }
 
@@ -21,28 +21,11 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('certificate_educations', function (Blueprint $table) {
-            $table->dropColumn('puanlar');
+        Schema::table('users', function (Blueprint $table) {
+            $table->dropColumn('tc_num');
         });
     }
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

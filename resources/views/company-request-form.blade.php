@@ -251,6 +251,10 @@
                     if (data.success) {
                         showMessage(data.message, 'success');
                         form.reset();
+                        // 2 saniye sonra login sayfasına yönlendir
+                        setTimeout(() => {
+                            window.location.href = '{{ route("login") }}';
+                        }, 2000);
                     } else {
                         showMessage(data.message || 'Bir hata oluştu. Lütfen tekrar deneyin.', 'error');
                     }

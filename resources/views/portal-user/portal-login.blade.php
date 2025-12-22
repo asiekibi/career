@@ -1,46 +1,46 @@
 <!DOCTYPE html>
 <html lang="tr">
     <!--öğrenci portal login page-->
-    <head>
-        <meta charset="utf-8"/>
-        <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
         <meta name="csrf-token" content="{{ csrf_token() }}">
-        <title>Sertifika Doğrulama</title>
-        <link rel="icon" type="image/png" href="{{ asset('logo/logo.png') }}"/>
-        <link href="https://fonts.googleapis.com" rel="preconnect"/>
-        <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&amp;display=swap" rel="stylesheet"/>
-        <script>
+    <title>Sertifika Doğrulama</title>
+    <link rel="icon" type="image/png" href="{{ asset('logo/logo.png') }}"/>
+    <link href="https://fonts.googleapis.com" rel="preconnect"/>
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&amp;display=swap" rel="stylesheet"/>
+    <script>
             function configureTailwind() {
                 if (typeof tailwind !== 'undefined') {
                     tailwind.config = {
-                        darkMode: "class",
-                        theme: {
-                            extend: {
-                                colors: {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
                                     "primary": "#1173d4",
                                     "background-light": "#f6f7f8",
                                     "background-dark": "#101922",
-                                },
-                                fontFamily: {
+                    },
+                    fontFamily: {
                                     "display": ["Inter"]
-                                },
+                    },
                                 borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
-                            },
-                        },
+                },
+            },
                     }
                 } else {
                     setTimeout(configureTailwind, 100);
                 }
-            }
-        </script>
+        }
+    </script>
         <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries" onload="configureTailwind()"></script>
-        <style>
-            body {
-                font-family: 'Inter', sans-serif;
-            }
-        </style>
-    </head>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+</head>
 
     <!-- login page body-->
     <body class="bg-background-light dark:bg-background-dark font-display text-gray-800 dark:text-gray-200">
@@ -62,7 +62,7 @@
                 <div id="errorMessage" class="hidden mt-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
                     <p class="text-sm text-red-600 dark:text-red-400" id="errorText"></p>
                 </div>
-
+                
                 <!--login page body content form-->
                 <form action="{{ route('portal.search') }}" class="mt-8 space-y-6" method="POST" id="searchForm">
                     @csrf
@@ -84,20 +84,20 @@
                             @enderror
                         </div>
                         <div>
-                            <label class="sr-only" for="certificate_code">Sertifika Numarası</label>
+                            <label class="sr-only" for="register_no">Register No</label>
                             <input 
-                                class="relative block w-full appearance-none rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-3 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:z-10 focus:border-primary focus:outline-none focus:ring-primary sm:text-sm @error('certificate_code') border-red-500 @enderror" 
-                                id="certificate_code" 
-                                name="certificate_code" 
-                                placeholder="Sertifika Numarası" 
+                                class="relative block w-full appearance-none rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-3 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:z-10 focus:border-primary focus:outline-none focus:ring-primary sm:text-sm @error('register_no') border-red-500 @enderror" 
+                                id="register_no" 
+                                name="register_no" 
+                                placeholder="Register No" 
                                 required="" 
                                 type="text"
-                                value="{{ old('certificate_code') }}"/>
-                            @error('certificate_code')
+                                value="{{ old('register_no') }}"/>
+                            @error('register_no')
                                 <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                             @enderror
-                        </div>
-                        <div>
+                            </div>
+                        <div class="hidden">
                             <label class="sr-only" for="tax_number">TC Kimlik No (Opsiyonel)</label>
                             <input 
                                 class="relative block w-full appearance-none rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-3 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:z-10 focus:border-primary focus:outline-none focus:ring-primary sm:text-sm @error('tax_number') border-red-500 @enderror" 
@@ -118,10 +118,10 @@
                                 type="submit" id="submitButton">
                             Sertifikayı Doğrula
                         </button>
-                    </div>
+                        </div>
                 </form>
-            </div>
-        </div>
+                            </div>
+                        </div>
     </body>
     <script>
         // CSRF token al
@@ -173,8 +173,8 @@
             })
             .then(data => {
                 if (data.success) {
-                    // Başarılı - öğrenci CV sayfasına yönlendir
-                    window.location.href = '{{ route("portal.student.cv", ":userId") }}'.replace(':userId', data.student.id);
+                    // Başarılı - company portal main sayfasına yönlendir
+                    window.location.href = '/company-portal/main';
                 } else {
                     // Hata mesajını göster
                     errorText.textContent = data.message || 'Bir hata oluştu. Lütfen tekrar deneyin.';

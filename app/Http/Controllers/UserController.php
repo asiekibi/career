@@ -124,6 +124,7 @@ class UserController extends Controller
             'city_id' => 'nullable|string',
             'district_id' => 'nullable|string',
             'contact_info' => 'required|boolean',
+            'tc_num' => 'nullable|string|max:11|min:11',
         ], [
             'full_name.required' => 'Ad Soyad gereklidir.',
             'email.required' => 'Email gereklidir.',
@@ -147,6 +148,7 @@ class UserController extends Controller
             'gsm' => $request->gsm,
             'birth_date' => $request->birth_date,
             'contact_info' => $request->contact_info,
+            'tc_num' => $request->tc_num,
         ];
         
         // country_id'yi ekle
@@ -183,6 +185,7 @@ class UserController extends Controller
             'city_id' => 'nullable|string',
             'district_id' => 'nullable|string',
             'contact_info' => 'required|boolean',
+            'tc_num' => 'nullable|string|max:11|min:11',
         ], [
             'full_name.required' => 'Ad Soyad gereklidir.',
             'email.required' => 'Email gereklidir.',
@@ -223,6 +226,7 @@ class UserController extends Controller
             'birth_date' => $request->birth_date,
             'gsm' => $request->gsm,
             'register_number' => $registerNumber,
+            'tc_num' => $request->tc_num,
             'point' => '0',
             'country_id' => $request->country_id,
             'contact_info' => $request->contact_info,
@@ -706,14 +710,16 @@ class UserController extends Controller
         $request->validate([
             'gsm' => 'nullable|string|max:20',
             'email' => 'required|email|max:255|unique:users,email,' . auth()->id(),
-            'contact_info' => 'nullable|boolean', // Yeni eklenen alan
+            'contact_info' => 'nullable|boolean',
+            'tc_num' => 'nullable|string|max:11|min:11',
         ]);
 
         $user = auth()->user();
         $user->update([
             'gsm' => $request->gsm,
             'email' => $request->email,
-            'contact_info' => $request->contact_info ?? $user->contact_info, // Yeni eklenen alan
+            'contact_info' => $request->contact_info ?? $user->contact_info,
+            'tc_num' => $request->tc_num,
         ]);
 
         return response()->json([

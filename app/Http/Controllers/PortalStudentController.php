@@ -25,7 +25,7 @@ class PortalStudentController extends Controller
     {
         $request->validate([
             'full_name' => 'required|string|max:255',
-            'certificate_code' => 'required|string|max:255',
+            'register_no' => 'required|string|max:255',
             'tax_number' => 'nullable|string|max:50'
         ]);
 
@@ -34,8 +34,8 @@ class PortalStudentController extends Controller
         $firstName = $nameParts[0];
         $lastName = isset($nameParts[1]) ? $nameParts[1] : '';
 
-        // search by certificate code and user name
-        $userCertificate = UserCertificate::where('certificate_code', $request->certificate_code)
+        // search by register_no and user name
+        $userCertificate = UserCertificate::where('register_no', $request->register_no)
             ->whereHas('user', function($query) use ($firstName, $lastName) {
                 $query->where('name', 'LIKE', $firstName . '%');
                 if ($lastName) {
@@ -48,7 +48,7 @@ class PortalStudentController extends Controller
         if (!$userCertificate) {
             return response()->json([
                 'success' => false,
-                'message' => 'Sertifika kaydına ulaşılamamıştır. Lütfen ad soyad ve sertifika numarasını kontrol edin.'
+                'message' => 'Sertifika kaydına ulaşılamamıştır. Lütfen ad soyad ve register numarasını kontrol edin.'
             ]);
         }
 
