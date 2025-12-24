@@ -35,7 +35,7 @@ class CertificateController extends Controller
             'certificate_name' => 'required|string|max:255',
             'type' => 'required|in:ders,kurs',
             'course' => 'array',
-            'template_file' => 'nullable|file|mimes:pdf|max:10240', // Max 10MB
+            'template_file' => 'nullable|file|mimes:pdf|max:40960', // Max 40MB
         ];
         
         // Klişeli sertifika (ders) için dersler zorunlu
@@ -135,7 +135,7 @@ class CertificateController extends Controller
             'certificate_name' => 'required|string|max:255',
             'type' => 'required|in:ders,kurs',
             'course' => 'array',
-            'template_file' => 'nullable|file|mimes:pdf|max:10240', // Max 10MB
+            'template_file' => 'nullable|file|mimes:pdf|max:40960', // Max 40MB
         ];
         
         // Klişeli sertifika (ders) için dersler zorunlu
