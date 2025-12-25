@@ -67,6 +67,7 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
         Route::get('/certificates', 'index')->name('admin.certificates');
         Route::get('/certificates/{id}/edit', 'edit')->name('admin.certificates.edit');
         Route::put('/certificates/{id}', 'update')->name('admin.certificates.update');
+        Route::delete('/certificates/{id}', 'destroy')->name('admin.certificates.destroy');
         Route::get('/certificates/{id}/download-template', 'downloadTemplate')->name('admin.certificates.download-template');
         
         //admin.add-certificate

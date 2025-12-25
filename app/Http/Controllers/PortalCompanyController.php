@@ -173,13 +173,13 @@ class PortalCompanyController extends Controller
         $studentId = session('student_id');
         if ($studentId) {
             try {
-                $student = User::where('id', $studentId)
-                    ->with(['cvs.experiences', 'cvs.educations', 'cvs.abilities', 'cvs.languages', 'userBadges.badge', 'userCertificates.certificate'])
-                    ->firstOrFail();
+            $student = User::where('id', $studentId)
+                ->with(['cvs.experiences', 'cvs.educations', 'cvs.abilities', 'cvs.languages', 'userBadges.badge', 'userCertificates.certificate'])
+                ->firstOrFail();
 
-                $companyName = session('company_name');
-                $isCompanyAuth = session('is_company_auth', false);
-                $loginType = session('login_type', 'student');
+            $companyName = session('company_name');
+            $isCompanyAuth = session('is_company_auth', false);
+            $loginType = session('login_type', 'student');
 
                 // Firma girişi için CV listesi göster
                 $users = User::where('role', 'user')

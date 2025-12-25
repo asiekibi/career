@@ -16,7 +16,7 @@ server {
     # ... diğer ayarlar ...
     
     location ~ \.php$ {
-        fastcgi_pass unix:/var/run/php/php8.2-fpm.sock;
+        fastcgi_pass unix:/var/run/php/php8.3-fpm.sock;
         fastcgi_param PHP_VALUE "upload_max_filesize=50M \n post_max_size=50M";
         # ... diğer fastcgi ayarları ...
     }
@@ -31,7 +31,7 @@ sudo systemctl reload nginx
 
 ## 2. PHP-FPM Ayarları
 
-PHP-FPM yapılandırma dosyasını düzenleyin (`/etc/php/8.2/fpm/php.ini`):
+PHP-FPM yapılandırma dosyasını düzenleyin (`/etc/php/8.3/fpm/php.ini`):
 
 ```ini
 upload_max_filesize = 50M
@@ -43,7 +43,7 @@ memory_limit = 256M
 
 PHP-FPM'i yeniden başlatın:
 ```bash
-sudo systemctl restart php8.2-fpm
+sudo systemctl restart php8.3-fpm
 ```
 
 ## 3. Kontrol
@@ -60,3 +60,5 @@ phpinfo();
 ```
 
 Bu dosyayı tarayıcıda açarak `upload_max_filesize` ve `post_max_size` değerlerini kontrol edin.
+
+

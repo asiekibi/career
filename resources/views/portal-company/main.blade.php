@@ -272,8 +272,8 @@
                         </div>
                     @endforelse
                 </div>
-            </div>
         </div>
+    </div>
     @endif
 </main>
 

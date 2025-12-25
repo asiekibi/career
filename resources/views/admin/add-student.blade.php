@@ -7,6 +7,33 @@
         {{ isset($user) ? 'Öğrenci Düzenle' : 'Öğrenci Ekle' }}
     </h2>
     
+    <!-- success message -->
+    @if (session('success'))
+        <div class="mt-6 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
+            <div class="text-sm text-green-700 dark:text-green-300">
+                {{ session('success') }}
+            </div>
+        </div>
+    @endif
+
+    <!-- error message -->
+    @if (session('error'))
+        <div class="mt-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+            <div class="text-sm text-red-700 dark:text-red-300">
+                {{ session('error') }}
+            </div>
+        </div>
+    @endif
+
+    <!-- warning message -->
+    @if (session('warning'))
+        <div class="mt-6 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
+            <div class="text-sm text-yellow-700 dark:text-yellow-300">
+                {{ session('warning') }}
+            </div>
+        </div>
+    @endif
+    
     <!-- form -->
     <div class="mt-8 bg-white dark:bg-background-dark/50 rounded-lg shadow-sm p-6">
         <form action="{{ isset($user) ? route('admin.students.update', $user->id) : route('admin.students.store') }}" method="POST">

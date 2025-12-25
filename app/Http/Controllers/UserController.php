@@ -20,7 +20,9 @@ use App\Models\JobListing;
 use App\Models\CompanyRequest;
 use App\Mail\NewUserPasswordMail;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use App\Helpers\EmailValidator;
 
 class UserController extends Controller
 {
@@ -117,7 +119,7 @@ class UserController extends Controller
         
         $request->validate([
             'full_name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email,' . $id,
+            'email' => ['required', 'email', 'max:255', 'regex:/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/', 'unique:users,email,' . $id],
             'gsm' => 'required|string|max:20',
             'birth_date' => 'required|date',
             'country_id' => 'nullable|integer|exists:countries,id',
@@ -128,12 +130,23 @@ class UserController extends Controller
             'full_name.required' => 'Ad Soyad gereklidir.',
             'email.required' => 'Email gereklidir.',
             'email.email' => 'Geçerli bir email adresi giriniz.',
+            'email.regex' => 'Email adresi formatı geçersiz. Lütfen geçerli bir email adresi giriniz.',
+            'email.max' => 'Email adresi çok uzun.',
             'email.unique' => 'Bu email adresi zaten kullanılıyor.',
             'gsm.required' => 'GSM gereklidir.',
             'birth_date.required' => 'Doğum tarihi gereklidir.',
             'country_id.exists' => 'Seçilen ülke geçersiz.',
             'contact_info.required' => 'İletişim izni seçimi gereklidir.',
         ]);
+
+        // Email değişikliğini kontrol et
+        $emailChanged = $user->email !== $request->email;
+        $temporaryPassword = null;
+
+        // Eğer email değiştiyse yeni şifre oluştur
+        if ($emailChanged) {
+            $temporaryPassword = \Illuminate\Support\Str::random(12);
+        }
 
         // Ad soyadı ayır
         $nameParts = explode(' ', $request->full_name, 2);
@@ -148,6 +161,11 @@ class UserController extends Controller
             'birth_date' => $request->birth_date,
             'contact_info' => $request->contact_info,
         ];
+        
+        // Eğer email değiştiyse şifreyi de güncelle
+        if ($emailChanged && $temporaryPassword) {
+            $updateData['password'] = Hash::make($temporaryPassword);
+        }
         
         // country_id'yi ekle
         if ($request->country_id) {
@@ -165,9 +183,81 @@ class UserController extends Controller
         
         
         $result = $user->update($updateData);
-        
 
-        return redirect()->route('admin.dashboard')->with('success', 'Öğrenci başarıyla güncellendi!');
+        // Eğer email değiştiyse yeni şifreyi gönder
+        if ($emailChanged && $temporaryPassword) {
+            try {
+                \Log::info('📧 Öğrenci güncelleme mail gönderim denemesi başlatılıyor', [
+                    'user_id' => $user->id,
+                    'email' => $user->email,
+                    'timestamp' => now()->toDateTimeString(),
+                ]);
+                
+                // Mail gönderimini dene ve SMTP yanıtını yakala
+                $smtpResponse = null;
+                try {
+                    Mail::to($user->email)->sendNow(new NewUserPasswordMail($user, $temporaryPassword));
+                    $smtpResponse = 'SMTP sunucusu maili kabul etti (250 OK)';
+                } catch (\Symfony\Component\Mailer\Exception\TransportExceptionInterface $e) {
+                    // SMTP transport hatası - detaylı yanıt al
+                    $smtpResponse = $e->getMessage();
+                    throw $e;
+                }
+                
+                // NOT: sendNow() SMTP sunucusuna maili teslim ettiğinde exception fırlatmaz
+                // Ancak mailbox yoksa veya geçersizse mail daha sonra bounce olabilir
+                \Log::warning('⚠️ Öğrenci güncelleme maili SMTP sunucusuna teslim edildi (gerçek teslimat garantisi yok)', [
+                    'user_id' => $user->id,
+                    'email' => $user->email,
+                    'timestamp' => now()->toDateTimeString(),
+                    'status' => 'smtp_accepted',
+                    'smtp_response' => $smtpResponse,
+                    'note' => 'SMTP sunucusu maili kabul etti, ancak mailbox geçersizse bounce olabilir.',
+                ]);
+                
+                return redirect()->route('admin.students.edit', $user->id)
+                    ->with('success', 'Öğrenci başarıyla güncellendi! Email değiştiği için yeni şifre email ile gönderildi.');
+            } catch (\Exception $e) {
+                // Hata detaylarını logla - SMTP yanıtını yakala
+                $smtpResponse = $e->getMessage();
+                $smtpCode = null;
+                if (preg_match('/\b(5[0-5][0-9])\b/', $smtpResponse, $matches)) {
+                    $smtpCode = $matches[1];
+                }
+                
+                \Log::error('❌ Öğrenci güncelleme email gönderim hatası', [
+                    'user_id' => $user->id,
+                    'email' => $user->email,
+                    'smtp_code' => $smtpCode,
+                    'smtp_response' => $smtpResponse,
+                    'timestamp' => now()->toDateTimeString(),
+                    'status' => 'failed',
+                    'trace' => $e->getTraceAsString()
+                ]);
+                
+                // Hata mesajını daha açıklayıcı ve kısa hale getir
+                $errorMessage = '';
+                $errorLower = strtolower($e->getMessage());
+                
+                if (str_contains($errorLower, 'quota') || str_contains($errorLower, 'limit') || str_contains($errorLower, 'hakkı')) {
+                    $errorMessage = 'Email gönderim hakkı tükenmiş veya limit aşılmış.';
+                } elseif (str_contains($errorLower, 'not found') || str_contains($errorLower, 'bulunamadı')) {
+                    $errorMessage = 'Email adresi bulunamadı veya geçersiz.';
+                } elseif (str_contains($errorLower, 'authenticate') || str_contains($errorLower, 'smtp') || str_contains($errorLower, 'password not accepted') || str_contains($errorLower, 'badcredentials')) {
+                    $errorMessage = 'SMTP kimlik doğrulama hatası. Gmail kullanıyorsanız, normal şifre yerine "App Password" (Uygulama Şifresi) kullanmanız gerekiyor. Gmail hesabınızda 2-Factor Authentication açık olmalı ve App Password oluşturmalısınız.';
+                } elseif (str_contains($errorLower, 'connection') || str_contains($errorLower, 'timeout')) {
+                    $errorMessage = 'Email sunucusuna bağlanılamadı. Bağlantı hatası.';
+                } else {
+                    $errorMessage = 'Email gönderiminde bir hata oluştu.';
+                }
+                
+                return redirect()->route('admin.students.edit', $user->id)
+                    ->with('error', 'Öğrenci güncellendi ancak yeni şifre email ile gönderilemedi! ' . $errorMessage . ' Lütfen manuel olarak şifreyi paylaşın: ' . $temporaryPassword . ' veya lütfen danışın.')
+                    ->withInput();
+            }
+        }
+
+        return redirect()->route('admin.students.edit', $user->id)->with('success', 'Öğrenci başarıyla güncellendi!');
     }
        /**
      * Store a newly created resource in storage.
@@ -176,7 +266,7 @@ class UserController extends Controller
     {
         $request->validate([
             'full_name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email',
+            'email' => ['required', 'email', 'max:255', 'regex:/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/', 'unique:users,email'],
             'gsm' => 'required|string|max:20',
             'birth_date' => 'required|date',
             'country_id' => 'required|integer|exists:countries,id',
@@ -188,6 +278,8 @@ class UserController extends Controller
             'full_name.required' => 'Ad Soyad gereklidir.',
             'email.required' => 'Email gereklidir.',
             'email.email' => 'Geçerli bir email adresi giriniz.',
+            'email.regex' => 'Email adresi formatı geçersiz. Lütfen geçerli bir email adresi giriniz.',
+            'email.max' => 'Email adresi çok uzun.',
             'email.unique' => 'Bu kullanıcı zaten kayıtlı. Lütfen farklı bir email adresi kullanın.',
             'gsm.required' => 'GSM gereklidir.',
             'birth_date.required' => 'Doğum tarihi gereklidir.',
@@ -195,6 +287,78 @@ class UserController extends Controller
             'country_id.exists' => 'Seçilen ülke geçersiz.',
             'contact_info.required' => 'İletişim izni seçimi gereklidir.',
         ]);
+        
+        // Email format kontrolü - şüpheli pattern'leri yakala
+        $email = $request->email;
+        $emailParts = explode('@', $email);
+        if (count($emailParts) !== 2) {
+            return redirect()->back()
+                ->withErrors(['email' => 'Email adresi formatı geçersiz.'])
+                ->withInput();
+        }
+        
+        $localPart = $emailParts[0]; // Email'in @ öncesi kısmı
+        $domain = $emailParts[1];
+        
+        // Local part (kullanıcı adı) çok uzunsa şüpheli (RFC 5321'e göre max 64 karakter)
+        if (strlen($localPart) > 64) {
+            return redirect()->back()
+                ->withErrors(['email' => 'Email adresi kullanıcı adı çok uzun. Lütfen geçerli bir email adresi giriniz.'])
+                ->withInput();
+        }
+        
+        // Local part çok uzun ve tekrarlayan karakterler içeriyorsa şüpheli (örn: aaaaaaaaaaaaaaaaaaaaaaa)
+        if (strlen($localPart) > 30 && preg_match('/(.)\1{8,}/', $localPart)) {
+            return redirect()->back()
+                ->withErrors(['email' => 'Email adresi formatı geçersiz görünüyor. Lütfen geçerli bir email adresi giriniz.'])
+                ->withInput();
+        }
+        
+        // Local part çok uzunsa (40 karakterden fazla) şüpheli
+        if (strlen($localPart) > 40) {
+            return redirect()->back()
+                ->withErrors(['email' => 'Email adresi kullanıcı adı çok uzun. Lütfen geçerli bir email adresi giriniz.'])
+                ->withInput();
+        }
+        
+        // Local part çok fazla sayı içeriyorsa şüpheli (örn: admin049720423653536383868688835)
+        $digitCount = preg_match_all('/\d/', $localPart);
+        if ($digitCount > 20) {
+            return redirect()->back()
+                ->withErrors(['email' => 'Email adresi formatı geçersiz görünüyor. Lütfen geçerli bir email adresi giriniz.'])
+                ->withInput();
+        }
+        
+        // Şüpheli domain'leri kontrol et (admin.com, test.com gibi)
+        $suspiciousDomains = ['admin.com', 'test.com', 'example.com', 'localhost.com'];
+        if (in_array(strtolower($domain), $suspiciousDomains)) {
+            return redirect()->back()
+                ->withErrors(['email' => 'Email adresi domain\'i geçersiz görünüyor. Lütfen geçerli bir email adresi giriniz.'])
+                ->withInput();
+        }
+        
+        // Email validation - mailbox kontrolü (SMTP RCPT TO)
+        \Log::info('🔍 Email validation başlatılıyor', [
+            'email' => $email,
+            'timestamp' => now()->toDateTimeString(),
+        ]);
+        
+        $emailValidation = EmailValidator::validateEmail($email);
+        
+        \Log::info('🔍 Email validation sonucu', [
+            'email' => $email,
+            'valid' => $emailValidation['valid'],
+            'message' => $emailValidation['message'],
+            'details' => $emailValidation['details'],
+            'timestamp' => now()->toDateTimeString(),
+        ]);
+        
+        // Eğer email geçersizse (550 Mailbox not found) hata döndür
+        if (!$emailValidation['valid'] && isset($emailValidation['details']['smtp_code']) && $emailValidation['details']['smtp_code'] === '550') {
+            return redirect()->back()
+                ->withErrors(['email' => 'Email adresi geçersiz veya mailbox bulunamadı. Lütfen geçerli bir email adresi giriniz.'])
+                ->withInput();
+        }
     
         // Ad ve soyadı ayır
         $nameParts = explode(' ', $request->full_name, 2);
@@ -239,24 +403,103 @@ class UserController extends Controller
             $userData['district_id'] = $request->district_id;
         }
         
-        $user = User::create($userData);
-    
-        // Email gönder (senkron - queue kullanmadan)
+        // Database transaction başlat - mail gönderilemezse öğrenci oluşturulmasın
         try {
-            Mail::to($user->email)->sendNow(new NewUserPasswordMail($user, $temporaryPassword));
+            return DB::transaction(function () use ($userData, $temporaryPassword, $request, $email, $emailValidation) {
+                $user = User::create($userData);
             
-            return redirect()->route('admin.dashboard')->with('success', 'Öğrenci başarıyla eklendi! Şifre email ile gönderildi.');
+                // Email gönder (senkron - queue kullanmadan)
+                // Exception fırlatılırsa transaction rollback olur ve öğrenci oluşturulmaz
+                try {
+                    // Mail gönderimini dene - sendNow() kullan (senkron)
+                    \Log::info('📧 Mail gönderim denemesi başlatılıyor', [
+                        'user_id' => $user->id,
+                        'email' => $user->email,
+                        'timestamp' => now()->toDateTimeString(),
+                    ]);
+                    
+                    // Mail gönderimini dene ve SMTP yanıtını yakala
+                    $smtpResponse = null;
+                    try {
+                        Mail::to($user->email)->sendNow(new NewUserPasswordMail($user, $temporaryPassword));
+                        
+                        // SMTP yanıtını yakalamaya çalış (Laravel bunu doğrudan sağlamıyor)
+                        // Ancak exception içinde SMTP yanıtı olabilir
+                        $smtpResponse = 'SMTP sunucusu maili kabul etti (250 OK)';
+                    } catch (\Symfony\Component\Mailer\Exception\TransportExceptionInterface $e) {
+                        // SMTP transport hatası - detaylı yanıt al
+                        $smtpResponse = $e->getMessage();
+                        throw $e;
+                    }
+                    
+                    // NOT: sendNow() SMTP sunucusuna maili teslim ettiğinde exception fırlatmaz
+                    // Ancak mailbox yoksa veya geçersizse mail daha sonra bounce olabilir
+                    // Bu durumda SMTP sunucusu maili kabul eder ama gerçek teslimat yapılamaz
+                    \Log::warning('⚠️ Mail SMTP sunucusuna teslim edildi (gerçek teslimat garantisi yok)', [
+                        'user_id' => $user->id,
+                        'email' => $user->email,
+                        'timestamp' => now()->toDateTimeString(),
+                        'status' => 'smtp_accepted',
+                        'smtp_response' => $smtpResponse,
+                        'email_validation_before_send' => $emailValidation ?? null,
+                        'note' => 'SMTP sunucusu maili kabul etti. Email validation sonucu logda görülebilir. Eğer validation 550 döndüyse mailbox yok demektir.',
+                    ]);
+                } catch (\Exception $mailException) {
+                    // Mail gönderim hatası - transaction rollback yapılacak
+                    // SMTP yanıtını exception mesajından çıkarmaya çalış
+                    $smtpResponse = $mailException->getMessage();
+                    
+                    // Exception içinde SMTP yanıt kodu var mı kontrol et (örn: 550, 551, 552, 553, 554)
+                    $smtpCode = null;
+                    if (preg_match('/\b(5[0-5][0-9])\b/', $smtpResponse, $matches)) {
+                        $smtpCode = $matches[1];
+                    }
+                    
+                    \Log::error('❌ Mail gönderim hatası - transaction rollback', [
+                        'user_id' => $user->id,
+                        'email' => $user->email,
+                        'smtp_code' => $smtpCode,
+                        'smtp_response' => $smtpResponse,
+                        'timestamp' => now()->toDateTimeString(),
+                        'status' => 'failed',
+                        'trace' => $mailException->getTraceAsString()
+                    ]);
+                    
+                    // Exception'ı yukarı fırlat ki transaction rollback olsun
+                    throw $mailException;
+                }
+                
+                // Transaction commit edilir, öğrenci oluşturulur
+                return redirect()->route('admin.dashboard')->with('success', 'Öğrenci başarıyla eklendi! Şifre email ile gönderildi.');
+            });
         } catch (\Exception $e) {
+            // Transaction rollback yapıldı, öğrenci oluşturulmadı
             // Hata detaylarını logla
-            \Log::error('Yeni kullanıcı email gönderim hatası', [
-                'user_id' => $user->id,
-                'email' => $user->email,
+            \Log::error('Yeni kullanıcı email gönderim hatası - öğrenci oluşturulmadı', [
+                'email' => $userData['email'],
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
             
-            return redirect()->route('admin.dashboard')
-                ->with('warning', 'Öğrenci başarıyla eklendi ancak şifre email ile gönderilemedi. Hata: ' . $e->getMessage() . ' Lütfen manuel olarak şifreyi paylaşın: ' . $temporaryPassword);
+            // Hata mesajını daha açıklayıcı ve kısa hale getir
+            $errorMessage = '';
+            $errorLower = strtolower($e->getMessage());
+            
+            if (str_contains($errorLower, 'quota') || str_contains($errorLower, 'limit') || str_contains($errorLower, 'hakkı')) {
+                $errorMessage = 'Email gönderim hakkı tükenmiş veya limit aşılmış.';
+            } elseif (str_contains($errorLower, 'not found') || str_contains($errorLower, 'bulunamadı')) {
+                $errorMessage = 'Email adresi bulunamadı veya geçersiz.';
+            } elseif (str_contains($errorLower, 'authenticate') || str_contains($errorLower, 'smtp') || str_contains($errorLower, 'password not accepted') || str_contains($errorLower, 'badcredentials')) {
+                $errorMessage = 'SMTP kimlik doğrulama hatası. Gmail kullanıyorsanız, normal şifre yerine "App Password" (Uygulama Şifresi) kullanmanız gerekiyor. Gmail hesabınızda 2-Factor Authentication açık olmalı ve App Password oluşturmalısınız.';
+            } elseif (str_contains($errorLower, 'connection') || str_contains($errorLower, 'timeout')) {
+                $errorMessage = 'Email sunucusuna bağlanılamadı. Bağlantı hatası.';
+            } else {
+                $errorMessage = 'Email gönderiminde bir hata oluştu.';
+            }
+            
+            return redirect()->back()
+                ->with('error', 'Öğrenci oluşturulamadı! ' . $errorMessage . ' Lütfen email ayarlarınızı kontrol edin veya lütfen danışın.')
+                ->withInput();
         }
     }
 

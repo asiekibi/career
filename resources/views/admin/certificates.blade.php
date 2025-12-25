@@ -107,12 +107,22 @@
                             @endif
                         </p>
                     </div>
-                    <button type="button" 
-                            onclick="editCertificate({{ $certificate->id }})"
-                            class="text-primary hover:text-primary/80 dark:text-primary dark:hover:text-primary/80 flex items-center gap-1">
-                        <span class="material-symbols-outlined text-lg">edit</span>
-                        <span>Düzenle</span>
-                    </button>
+                    <div class="flex items-center gap-3">
+                        <button type="button" 
+                                onclick="editCertificate({{ $certificate->id }})"
+                                class="px-3 py-2 text-primary hover:text-primary/80 dark:text-primary dark:hover:text-primary/80 flex items-center gap-1 border border-primary rounded-lg hover:bg-primary/10 transition-colors">
+                            <span class="material-symbols-outlined text-lg">edit</span>
+                            <span>Düzenle</span>
+                        </button>
+                        <button type="button" 
+                                data-certificate-id="{{ $certificate->id }}"
+                                data-certificate-name="{{ $certificate->certificate_name }}"
+                                onclick="confirmDeleteCertificate(this)"
+                                class="px-4 py-2 bg-red-600 dark:bg-red-500 text-white font-medium hover:bg-red-700 dark:hover:bg-red-600 flex items-center gap-2 rounded-lg transition-colors shadow-md hover:shadow-lg">
+                            <span class="material-symbols-outlined text-xl">delete</span>
+                            <span class="text-sm font-semibold">Sil</span>
+                        </button>
+                    </div>
                 </div>
                 @if($certificate->template_path)
                     <div class="mt-2 text-sm text-gray-600 dark:text-gray-400">
@@ -399,4 +409,61 @@
             });
         }
     });
+
+    // Sertifika silme onayı
+    function confirmDeleteCertificate(button) {
+        const certificateId = button.getAttribute('data-certificate-id');
+        const certificateName = button.getAttribute('data-certificate-name');
+        
+        Swal.fire({
+            title: 'Emin misiniz?',
+            text: `"${certificateName}" sertifikasını silmek istediğinizden emin misiniz?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#6b7280',
+            confirmButtonText: 'Evet, Sil!',
+            cancelButtonText: 'İptal',
+            reverseButtons: true
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Loading göster
+                Swal.fire({
+                    title: 'Siliniyor...',
+                    text: 'Sertifika siliniyor, lütfen bekleyin.',
+                    icon: 'info',
+                    allowOutsideClick: false,
+                    showConfirmButton: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+                
+                // Form oluştur ve gönder
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = `/admin/certificates/${certificateId}`;
+                
+                // CSRF token ekle
+                const csrfToken = document.querySelector('meta[name="csrf-token"]');
+                if (csrfToken) {
+                    const csrfInput = document.createElement('input');
+                    csrfInput.type = 'hidden';
+                    csrfInput.name = '_token';
+                    csrfInput.value = csrfToken.getAttribute('content');
+                    form.appendChild(csrfInput);
+                }
+                
+                // Method spoofing için DELETE
+                const methodInput = document.createElement('input');
+                methodInput.type = 'hidden';
+                methodInput.name = '_method';
+                methodInput.value = 'DELETE';
+                form.appendChild(methodInput);
+                
+                document.body.appendChild(form);
+                form.submit();
+            }
+        });
+    }
 </script>

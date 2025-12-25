@@ -1286,4 +1286,62 @@ class CertificateController extends Controller
             ->header('Cache-Control', 'private, must-revalidate');
     }
 
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy($id)
+    {
+        try {
+            $certificate = Certificate::findOrFail($id);
+            
+            // Sertifikanın kullanıcılara atanıp atanmadığını kontrol et
+            $userCertificates = UserCertificate::where('certificate_id', $id)->get();
+            $userCertificatesCount = $userCertificates->count();
+            
+            // Eğer kullanıcılara atanmışsa, önce kullanıcılardan kaldır
+            if ($userCertificatesCount > 0) {
+                // Her bir kullanıcı sertifikası için certificate_lessons kayıtlarını sil
+                foreach ($userCertificates as $userCertificate) {
+                    CertificateLesson::where('user_certificate_id', $userCertificate->id)->delete();
+                }
+                
+                // Kullanıcı sertifikalarını sil
+                UserCertificate::where('certificate_id', $id)->delete();
+            }
+            
+            // Sertifika eğitimlerini sil
+            CertificateEducation::where('certificate_id', $id)->delete();
+            
+            // Şablon dosyasını sil (eğer varsa)
+            if ($certificate->template_path) {
+                $templatePath = public_path($certificate->template_path);
+                if (file_exists($templatePath)) {
+                    unlink($templatePath);
+                }
+                
+                // PDF dosyasını da sil (eğer varsa)
+                $pdfPath = str_replace('.html', '.pdf', $templatePath);
+                if (file_exists($pdfPath)) {
+                    unlink($pdfPath);
+                }
+            }
+            
+            // Sertifikayı sil
+            $certificate->delete();
+            
+            $message = 'Sertifika başarıyla silindi.';
+            if ($userCertificatesCount > 0) {
+                $message .= " ({$userCertificatesCount} kullanıcıdan otomatik olarak kaldırıldı.)";
+            }
+            
+            return redirect()->route('admin.certificates')
+                ->with('success', $message);
+                
+        } catch (\Exception $e) {
+            Log::error('Sertifika silme hatası: ' . $e->getMessage());
+            return redirect()->route('admin.certificates')
+                ->with('error', 'Sertifika silinirken bir hata oluştu: ' . $e->getMessage());
+        }
+    }
+
 }

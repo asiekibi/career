@@ -57,3 +57,4 @@ echo "Şimdi projeyi /var/www/kariyer klasörüne yükleyin"
 
 
 
+
