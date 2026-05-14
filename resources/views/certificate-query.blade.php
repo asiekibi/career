@@ -1233,11 +1233,7 @@
 
           try {
             const formData = new FormData(form);
-            let targetUrl = form.getAttribute('action');
-
-            if (window.location.protocol === 'https:' && targetUrl.startsWith('http:')) {
-              targetUrl = targetUrl.replace('http:', 'https:');
-            }
+            const targetUrl = formId === 'loginForm' ? '/login' : '/register';
 
             const response = await fetch(targetUrl, {
               method: 'POST',
@@ -1264,7 +1260,7 @@
             }
           } catch (err) {
             console.error('Auth Error:', err);
-            alert('Sunucuyla iletişim kurulamadı. Lütfen sayfayı yenileyip tekrar deneyin veya internet bağlantınızı kontrol edin.');
+            alert('Bağlantı hatası: ' + err.message);
           } finally {
             submitBtn.disabled = false;
             submitBtn.textContent = submitText;
