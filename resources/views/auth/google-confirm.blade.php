@@ -69,7 +69,8 @@
                     </h1>
                     <p class="mt-2 text-gray-500 font-medium">
                         @if ($existingUser)
-                            Google ile oturumunuz doğrulanıyor, lütfen bekleyin...
+                            <span class="text-amber-600 font-bold">Bu e-posta adresi zaten kayıtlı.</span><br>
+                            Mevcut hesabınıza yönlendiriliyorsunuz...
                         @else
                             Sizin için bir kariyer hesabı hazırlıyoruz...
                         @endif
