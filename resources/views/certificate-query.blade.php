@@ -636,6 +636,52 @@
       padding: 20px 30px 40px;
     }
 
+    .asi-modal-tabs {
+      display: flex;
+      padding: 0 30px;
+      gap: 20px;
+      margin-top: 10px;
+      border-bottom: 1px solid #f1f5f9;
+    }
+
+    .asi-modal-tab {
+      flex: 1;
+      padding: 12px 0;
+      text-align: center;
+      font-size: 14px;
+      font-weight: 700;
+      color: #94a3b8;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .asi-modal-tab.active {
+      color: #0f172a;
+      border-bottom-color: #0f172a;
+    }
+
+    .asi-tab-content {
+      display: none;
+      animation: tabFade 0.3s ease-out;
+    }
+
+    .asi-tab-content.active {
+      display: block;
+    }
+
+    @keyframes tabFade {
+      from {
+        opacity: 0;
+        transform: translateY(5px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
     .asi-form-group {
       margin-bottom: 18px;
     }
@@ -836,17 +882,15 @@
               <span class="asi-miniStat"><strong>7/24</strong> Sorgulama</span>
             </div>
 
-            <div class="asi-search">
-              <input type="text" placeholder="Pozisyon ara">
-              <input type="text" placeholder="Şehir ara">
+            <form action="{{ route('public.job-listings') }}" method="GET" class="asi-search">
+              <input type="text" name="position" placeholder="Pozisyon ara">
+              <input type="text" name="city" placeholder="Şehir ara">
 
               <div class="asi-search-buttons">
-                <a href="{{ route('user.job-listings.index') }}">
-                  <button type="button">İŞ BUL</button>
-                </a>
+                <button type="submit">İŞ BUL</button>
                 <button type="button" class="asi-register-trigger" id="openModalBtn">KAYIT OL</button>
               </div>
-            </div>
+            </form>
 
             <div class="asi-logoTicker">
               <div class="asi-logoTickerTrack">
@@ -931,6 +975,11 @@
           <div class="asi-modal-title">Üyelik Oluştur</div>
           <div class="asi-modal-sub">Kariyer yolculuğuna bugün başla.</div>
         </div>
+        <div class="asi-modal-tabs">
+          <div class="asi-modal-tab active" data-tab="login">Giriş Yap</div>
+          <div class="asi-modal-tab" data-tab="register">Kayıt Ol</div>
+        </div>
+
         <div class="asi-modal-body">
           <a href="{{ route('google.redirect') }}" class="asi-google-btn">
             <img src="https://www.svgrepo.com/show/355037/google.svg" alt="Google" class="asi-google-icon">
@@ -939,35 +988,59 @@
 
           <div class="asi-divider">VEYA</div>
 
-          <form id="registerForm" action="{{ route('register') }}" method="POST">
-            @csrf
-            <div class="asi-form-group">
-              <label class="asi-form-label">Ad Soyad</label>
-              <input type="text" name="full_name" class="asi-modal-input" placeholder="Örn: Ahmet Yılmaz" required>
-            </div>
-            <div class="asi-form-group">
-              <label class="asi-form-label">E-posta</label>
-              <input type="email" name="email" class="asi-modal-input" placeholder="ahmet@ornek.com" required>
-            </div>
-            <div class="asi-form-group">
-              <label class="asi-form-label">Telefon</label>
-              <input type="tel" name="gsm" class="asi-modal-input" placeholder="05xx xxx xx xx" required>
-            </div>
-            <div class="asi-form-group">
-              <label class="asi-form-label">Doğum Tarihi</label>
-              <input type="date" name="birth_date" class="asi-modal-input" required>
-            </div>
-            <div class="asi-form-group">
-              <label class="asi-form-label">Şifre</label>
-              <input type="password" name="password" class="asi-modal-input" placeholder="••••••••" required>
-            </div>
-            <div class="asi-form-group">
-              <label class="asi-form-label">Şifre Tekrar</label>
-              <input type="password" name="password_confirmation" class="asi-modal-input" placeholder="••••••••"
-                required>
-            </div>
-            <button type="submit" class="asi-modal-btn">Kayıt Ol</button>
-          </form>
+          <!-- Login Tab -->
+          <div id="loginTab" class="asi-tab-content active">
+            <form id="loginForm" action="{{ route('login') }}" method="POST">
+              @csrf
+              <div class="asi-form-group">
+                <label class="asi-form-label">E-posta</label>
+                <input type="email" name="email" class="asi-modal-input" placeholder="ahmet@ornek.com" required>
+              </div>
+              <div class="asi-form-group">
+                <div class="flex justify-between items-center mb-1">
+                  <label class="asi-form-label mb-0">Şifre</label>
+                  <a href="{{ route('password.request') }}"
+                    class="text-[11px] font-bold text-slate-400 hover:text-slate-600 transition-colors">Şifremi
+                    Unuttum</a>
+                </div>
+                <input type="password" name="password" class="asi-modal-input" placeholder="••••••••" required>
+              </div>
+              <button type="submit" class="asi-modal-btn">Giriş Yap</button>
+            </form>
+          </div>
+
+          <!-- Register Tab -->
+          <div id="registerTab" class="asi-tab-content">
+            <form id="registerForm" action="{{ route('register') }}" method="POST">
+              @csrf
+              <div class="asi-form-group">
+                <label class="asi-form-label">Ad Soyad</label>
+                <input type="text" name="full_name" class="asi-modal-input" placeholder="Örn: Ahmet Yılmaz" required>
+              </div>
+              <div class="asi-form-group">
+                <label class="asi-form-label">E-posta</label>
+                <input type="email" name="email" class="asi-modal-input" placeholder="ahmet@ornek.com" required>
+              </div>
+              <div class="asi-form-group">
+                <label class="asi-form-label">Telefon</label>
+                <input type="tel" name="gsm" class="asi-modal-input" placeholder="05xx xxx xx xx" required>
+              </div>
+              <div class="asi-form-group">
+                <label class="asi-form-label">Doğum Tarihi</label>
+                <input type="date" name="birth_date" class="asi-modal-input" required>
+              </div>
+              <div class="asi-form-group">
+                <label class="asi-form-label">Şifre</label>
+                <input type="password" name="password" class="asi-modal-input" placeholder="••••••••" required>
+              </div>
+              <div class="asi-form-group">
+                <label class="asi-form-label">Şifre Tekrar</label>
+                <input type="password" name="password_confirmation" class="asi-modal-input" placeholder="••••••••"
+                  required>
+              </div>
+              <button type="submit" class="asi-modal-btn">Kayıt Ol</button>
+            </form>
+          </div>
         </div>
       </div>
     </div>
@@ -1098,20 +1171,43 @@
         }
       });
 
-      // Register Form AJAX
-      const registerForm = document.getElementById('registerForm');
-      if (registerForm) {
-        registerForm.addEventListener('submit', async (e) => {
+      // Tab Switching Logic
+      const tabs = root.querySelectorAll('.asi-modal-tab');
+      const tabContents = root.querySelectorAll('.asi-tab-content');
+
+      tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+          const targetTab = tab.getAttribute('data-tab');
+
+          // Update tabs
+          tabs.forEach(t => t.classList.remove('active'));
+          tab.classList.add('active');
+
+          // Update content
+          tabContents.forEach(content => {
+            content.classList.remove('active');
+            if (content.id === targetTab + 'Tab') {
+              content.classList.add('active');
+            }
+          });
+        });
+      });
+
+      // Auth Forms Helper
+      async function handleAuthForm(formId, submitText, loadingText) {
+        const form = document.getElementById(formId);
+        if (!form) return;
+
+        form.addEventListener('submit', async (e) => {
           e.preventDefault();
-          const submitBtn = registerForm.querySelector('button[type="submit"]');
-          const originalText = submitBtn.textContent;
+          const submitBtn = form.querySelector('button[type="submit"]');
 
           submitBtn.disabled = true;
-          submitBtn.textContent = 'Kaydediliyor...';
+          submitBtn.textContent = loadingText;
 
           try {
-            const formData = new FormData(registerForm);
-            const response = await fetch(registerForm.action, {
+            const formData = new FormData(form);
+            const response = await fetch(form.action, {
               method: 'POST',
               headers: {
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
@@ -1122,15 +1218,14 @@
 
             const data = await response.json();
 
-            if (response.ok && data.success) {
-              // Success - redirect to dashboard
+            if (response.ok && (data.success || data.redirect)) {
               window.location.href = data.redirect || '/dashboard';
             } else {
               if (data.errors) {
                 const errorMsg = Object.values(data.errors).flat().join('\n');
                 alert(errorMsg);
               } else {
-                alert(data.message || 'Kayıt sırasında bir hata oluştu.');
+                alert(data.message || 'İşlem sırasında bir hata oluştu.');
               }
             }
           } catch (err) {
@@ -1138,10 +1233,14 @@
             alert('Sunucuyla iletişim kurulamadı.');
           } finally {
             submitBtn.disabled = false;
-            submitBtn.textContent = originalText;
+            submitBtn.textContent = submitText;
           }
         });
       }
+
+      // Initialize Forms
+      handleAuthForm('registerForm', 'Kayıt Ol', 'Kaydediliyor...');
+      handleAuthForm('loginForm', 'Giriş Yap', 'Giriş Yapılıyor...');
     })();
   </script>
 </body>

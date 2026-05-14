@@ -215,6 +215,9 @@ Route::get('/sertifika-sorgulama', function () {
     return view('certificate-query', compact('featuredTrainers', 'latestJobs'));
 })->name('certificate-query.page');
 
+// Public job listings route
+Route::get('/is-ilanlari', [\App\Http\Controllers\JobListingController::class, 'publicIndex'])->name('public.job-listings');
+
 // Public company request form (no auth required)
 Route::get('/company-request', function () {
     return view('company-request-form');

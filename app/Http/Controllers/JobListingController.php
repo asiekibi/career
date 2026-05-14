@@ -103,6 +103,32 @@ class JobListingController extends Controller
 
         return redirect()->route('admin.job-listings.index')->with('success', 'İlan başarıyla silindi!');
     }
+
+    /**
+     * Display a listing of the resource for public users.
+     */
+    public function publicIndex(Request $request): View
+    {
+        $position = $request->input('position');
+        $city = $request->input('city');
+
+        $query = JobListing::query();
+
+        if ($position) {
+            $query->where('job_title', 'LIKE', "%{$position}%");
+        }
+
+        if ($city) {
+            $query->where(function($q) use ($city) {
+                $q->where('job_description', 'LIKE', "%{$city}%")
+                  ->orWhere('job_title', 'LIKE', "%{$city}%");
+            });
+        }
+
+        $jobListings = $query->orderBy('created_at', 'desc')->get();
+
+        return view('public-job-listings', compact('jobListings', 'position', 'city'));
+    }
 }
 
 
