@@ -88,7 +88,7 @@ class AuthController extends Controller
                 ->withErrors(['email' => 'Google oturumu bulunamadı. Lütfen tekrar deneyin.']);
         }
 
-        $existingUser = User::where('google_id', $googleUser['id'])
+        $existingUser = User::withTrashed()->where('google_id', $googleUser['id'])
             ->orWhere('email', $googleUser['email'])
             ->exists();
 
@@ -419,14 +419,20 @@ class AuthController extends Controller
      */
     private function findOrCreateGoogleUser(array $googleUser): User
     {
-        $user = User::where('google_id', $googleUser['id'])
+        $user = User::withTrashed()->where('google_id', $googleUser['id'])
             ->orWhere('email', $googleUser['email'])
             ->first();
 
         if ($user) {
+            // Eğer kullanıcı silinmişse geri getir
+            if ($user->trashed()) {
+                $user->restore();
+            }
+
             $user->forceFill([
                 'google_id' => $user->google_id ?: $googleUser['id'],
                 'profile_photo_url' => $user->profile_photo_url ?: ($googleUser['avatar'] ?? ''),
+                'is_active' => true,
             ])->save();
 
             return $user;
