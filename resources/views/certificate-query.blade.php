@@ -1219,52 +1219,16 @@
         });
       });
 
-      // Auth Forms Helper
-      async function handleAuthForm(formId, submitText, loadingText) {
+      // Auth Forms Helper (Standard Submit)
+      function handleAuthForm(formId, submitText, loadingText) {
         const form = document.getElementById(formId);
         if (!form) return;
 
-        form.addEventListener('submit', async (e) => {
-          e.preventDefault();
+        form.addEventListener('submit', () => {
           const submitBtn = form.querySelector('button[type="submit"]');
-
           submitBtn.disabled = true;
           submitBtn.textContent = loadingText;
-
-          try {
-            const formData = new FormData(form);
-            const targetUrl = formId === 'loginForm' ? '/login' : '/register';
-
-            const response = await fetch(targetUrl, {
-              method: 'POST',
-              headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                'X-Requested-With': 'XMLHttpRequest',
-                'Accept': 'application/json'
-              },
-              body: formData,
-              credentials: 'same-origin'
-            });
-
-            const data = await response.json();
-
-            if (response.ok && (data.success || data.redirect)) {
-              window.location.href = data.redirect || '/dashboard';
-            } else {
-              if (data.errors) {
-                const errorMsg = Object.values(data.errors).flat().join('\n');
-                alert(errorMsg);
-              } else {
-                alert(data.message || 'İşlem sırasında bir hata oluştu.');
-              }
-            }
-          } catch (err) {
-            console.error('Auth Error:', err);
-            alert('Bağlantı hatası: ' + err.message);
-          } finally {
-            submitBtn.disabled = false;
-            submitBtn.textContent = submitText;
-          }
+          // Formun normal şekilde gönderilmesine (page reload) izin veriyoruz
         });
       }
 
