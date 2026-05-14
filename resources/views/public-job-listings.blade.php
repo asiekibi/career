@@ -123,12 +123,10 @@
                     </p>
 
                     <div class="pt-6 border-t border-slate-100 flex items-center justify-between">
-                        <div class="flex items-center gap-2">
-                            <span class="text-xs font-bold text-slate-700">İletişim:</span>
+                        <div>
                             @auth
-                                <span class="text-xs font-bold text-slate-900">{{ $job->phone }}</span>
-                            @else
-                                <span class="text-xs font-bold text-slate-400 italic">Görmek için giriş yapın</span>
+                                <span class="text-xs font-bold text-slate-700">İletişim:</span>
+                                <span class="text-xs font-bold text-slate-900 ml-1">{{ $job->phone }}</span>
                             @endauth
                         </div>
                         <button onclick="{{ Auth::check() ? 'alert(\'İlan detayı yakında eklenecek.\')' : 'openAuthModal()' }}" 
