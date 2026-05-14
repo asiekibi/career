@@ -572,10 +572,11 @@
 
     .asi-modal {
       background: #fff;
-      width: 100%;
-      max-width: 480px;
-      max-height: 90vh;
+      width: 95%;
+      max-width: 500px;
+      max-height: 85vh;
       overflow-y: auto;
+      overflow-x: hidden;
       border-radius: 28px;
       box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
       position: relative;
@@ -645,12 +646,22 @@
     }
 
     .asi-modal-body {
-      padding: 20px 30px 40px;
+      padding: 10px 24px 30px;
+    }
+
+    @media (max-width: 480px) {
+      .asi-modal-body {
+        padding: 10px 16px 24px;
+      }
+
+      .asi-modal-header {
+        padding: 24px 20px 10px;
+      }
     }
 
     .asi-modal-tabs {
       display: flex;
-      padding: 0 30px;
+      padding: 0 24px;
       gap: 20px;
       margin-top: 10px;
       border-bottom: 1px solid #f1f5f9;
