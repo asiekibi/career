@@ -1190,8 +1190,8 @@
       });
 
       // Tab Switching Logic
-      const tabs = root.querySelectorAll('.asi-modal-tab');
-      const tabContents = root.querySelectorAll('.asi-tab-content');
+      const tabs = document.querySelectorAll('.asi-modal-tab');
+      const tabContents = document.querySelectorAll('.asi-tab-content');
 
       function switchTab(targetTab) {
         // Update tabs
