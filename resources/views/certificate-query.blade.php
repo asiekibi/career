@@ -1233,7 +1233,9 @@
 
           try {
             const formData = new FormData(form);
-            const response = await fetch(form.action, {
+            const targetUrl = formId === 'loginForm' ? '/login' : '/register';
+
+            const response = await fetch(targetUrl, {
               method: 'POST',
               headers: {
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
