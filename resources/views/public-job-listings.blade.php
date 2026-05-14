@@ -150,7 +150,7 @@
 
                     <div class="pt-6 border-t border-slate-100 flex items-center justify-end">
                         <button
-                            onclick='@auth openJobDetailModal({{ $job->id }}, {!! json_encode($job->job_title) !!}, {!! json_encode($job->job_description) !!}, "{{ $job->created_at->format("d.m.Y") }}") @else openAuthModal() @endauth'
+                            onclick='@auth openJobDetailModal({{ $job->id }}, {!! htmlspecialchars(json_encode($job->job_title), ENT_QUOTES, "UTF-8") !!}, {!! htmlspecialchars(json_encode($job->job_description), ENT_QUOTES, "UTF-8") !!}, "{{ $job->created_at->format("d.m.Y") }}") @else openAuthModal() @endauth'
                             class="px-5 py-2.5 rounded-full bg-slate-900 text-white text-xs font-bold hover:bg-slate-800 transition-all shadow-sm">
                             Detay Gör
                         </button>

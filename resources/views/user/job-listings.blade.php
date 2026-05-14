@@ -47,7 +47,7 @@
                                     </td>
                                     <td class="px-6 py-4">
                                         <button type="button"
-                                            onclick='openJobDetailModal({{ $listing->id }}, {!! json_encode($listing->job_title) !!}, {!! json_encode($listing->job_description) !!}, "{{ $listing->phone }}", "{{ $listing->created_at->format("d.m.Y") }}")'
+                                            onclick='openJobDetailModal({{ $listing->id }}, {!! htmlspecialchars(json_encode($listing->job_title), ENT_QUOTES, "UTF-8") !!}, {!! htmlspecialchars(json_encode($listing->job_description), ENT_QUOTES, "UTF-8") !!}, "{{ $listing->phone }}", "{{ $listing->created_at->format("d.m.Y") }}")'
                                             class="text-primary hover:text-primary/80 transition-colors cursor-pointer flex items-center justify-center"
                                             title="Detayları Görüntüle">
                                             <span class="material-symbols-outlined text-base">visibility</span>
@@ -95,7 +95,7 @@
 
                         <div class="flex justify-end">
                             <button type="button"
-                                onclick='openJobDetailModal({{ $listing->id }}, {!! json_encode($listing->job_title) !!}, {!! json_encode($listing->job_description) !!}, "{{ $listing->phone }}", "{{ $listing->created_at->format("d.m.Y") }}")'
+                                onclick='openJobDetailModal({{ $listing->id }}, {!! htmlspecialchars(json_encode($listing->job_title), ENT_QUOTES, "UTF-8") !!}, {!! htmlspecialchars(json_encode($listing->job_description), ENT_QUOTES, "UTF-8") !!}, "{{ $listing->phone }}", "{{ $listing->created_at->format("d.m.Y") }}")'
                                 class="text-primary hover:text-primary/80 transition-colors cursor-pointer flex items-center gap-2"
                                 title="Detayları Görüntüle">
                                 <span class="material-symbols-outlined text-base">visibility</span>
