@@ -1233,7 +1233,11 @@
 
           try {
             const formData = new FormData(form);
-            const targetUrl = formId === 'loginForm' ? '/login' : '/register';
+            let targetUrl = form.getAttribute('action');
+
+            if (window.location.protocol === 'https:' && targetUrl.startsWith('http:')) {
+              targetUrl = targetUrl.replace('http:', 'https:');
+            }
 
             const response = await fetch(targetUrl, {
               method: 'POST',
@@ -1242,7 +1246,8 @@
                 'X-Requested-With': 'XMLHttpRequest',
                 'Accept': 'application/json'
               },
-              body: formData
+              body: formData,
+              credentials: 'same-origin'
             });
 
             const data = await response.json();
@@ -1258,8 +1263,8 @@
               }
             }
           } catch (err) {
-            console.error(err);
-            alert('Sunucuyla iletişim kurulamadı.');
+            console.error('Auth Error:', err);
+            alert('Sunucuyla iletişim kurulamadı. Lütfen sayfayı yenileyip tekrar deneyin veya internet bağlantınızı kontrol edin.');
           } finally {
             submitBtn.disabled = false;
             submitBtn.textContent = submitText;
