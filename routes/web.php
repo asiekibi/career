@@ -23,6 +23,11 @@ Route::get('/', function () {
 Route::controller(AuthController::class)->group(function () {
     Route::get('/login', 'showLoginForm')->name('login');
     Route::post('/login', 'login');
+    Route::post('/register', 'register')->name('register');
+    Route::get('/auth/google', 'redirectToGoogle')->name('google.redirect');
+    Route::get('/auth/google/callback', 'handleGoogleCallback')->name('google.callback');
+    Route::get('/auth/google/confirm', 'showGoogleConfirm')->name('google.confirm');
+    Route::post('/auth/google/confirm', 'confirmGoogleLogin')->name('google.confirm.store');
     Route::post('/logout', 'logout')->name('logout');
 
     // Password reset routes
@@ -45,9 +50,9 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
         Route::get('/students', 'index')->name('admin.students');
         Route::get('/partner-companies', 'partnerCompanies')->name('admin.partner-companies');
         Route::post('/partner-companies/{id}/permission', 'updatePartnerPermission')->name('admin.partner-companies.permission');
-                    Route::post('/partner-companies/{id}/remove', 'removePartnerCompany')->name('admin.partner-companies.remove');
-                    Route::post('/company-requests/{id}/approve', 'approveCompanyRequest')->name('admin.company-requests.approve');
-                    Route::post('/company-requests/{id}/reject', 'rejectCompanyRequest')->name('admin.company-requests.reject');
+        Route::post('/partner-companies/{id}/remove', 'removePartnerCompany')->name('admin.partner-companies.remove');
+        Route::post('/company-requests/{id}/approve', 'approveCompanyRequest')->name('admin.company-requests.approve');
+        Route::post('/company-requests/{id}/reject', 'rejectCompanyRequest')->name('admin.company-requests.reject');
     });
 
     // Location routes
@@ -61,7 +66,7 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
     //admin.students.cvs
     Route::get('/cvs', [CvController::class, 'index'])->name('admin.cvs');
 
-     //admin.certificates
+    //admin.certificates
     Route::controller(CertificateController::class)->group(function () {
         Route::post('/certificates', 'store')->name('admin.certificates.store');
         Route::get('/certificates', 'index')->name('admin.certificates');
@@ -69,7 +74,7 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
         Route::put('/certificates/{id}', 'update')->name('admin.certificates.update');
         Route::delete('/certificates/{id}', 'destroy')->name('admin.certificates.destroy');
         Route::get('/certificates/{id}/download-template', 'downloadTemplate')->name('admin.certificates.download-template');
-        
+
         //admin.add-certificate
         Route::get('/students/{id}/assign-certificate', 'getAssignCertificate')->name('admin.students.assign-certificate');
         Route::post('/students/{id}/assign-certificate', 'storeAssignCertificate')->name('admin.students.assign-certificate.store');
@@ -84,7 +89,7 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
         Route::get('/badges', 'index')->name('admin.badges');
         Route::post('/badges', 'store')->name('admin.badges.store');
         Route::post('/badges/delete', 'destroy')->name('admin.badges.destroy');
-        
+
         //admin.add-badge
         Route::get('/students/{id}/assign-badge', 'getAssignBadge')->name('admin.students.assign-badge');
         Route::post('/students/{id}/assign-badge', 'storeAssignBadge')->name('admin.students.assign-badge.store');
@@ -99,7 +104,7 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
     Route::post('/instructor-card-requests/{id}/approve', [InstructorCardController::class, 'approve'])->name('admin.instructor-card-requests.approve');
     Route::post('/instructor-card-requests/{id}/reject', [InstructorCardController::class, 'reject'])->name('admin.instructor-card-requests.reject');
     Route::post('/instructor-card-requests/{id}/increase-rights', [InstructorCardController::class, 'increaseRequestRights'])->name('admin.instructor-card-requests.increase-rights');
-    
+
     //admin.job-listings
     Route::prefix('job-listings')->group(function () {
         Route::get('/', [\App\Http\Controllers\JobListingController::class, 'index'])->name('admin.job-listings.index');
@@ -109,8 +114,6 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
         Route::put('/{id}', [\App\Http\Controllers\JobListingController::class, 'update'])->name('admin.job-listings.update');
         Route::delete('/{id}', [\App\Http\Controllers\JobListingController::class, 'destroy'])->name('admin.job-listings.destroy');
     });
-
-  
 });
 
 // User routes - Just user can access
@@ -120,17 +123,17 @@ Route::prefix('user')->middleware(['auth', 'role:user'])->controller(UserControl
 
     // Profile photo update / User routes
     Route::post('/profile-photo', 'updateProfilePhoto')->name('user.profile-photo');
-    
+
     // Carier page / User routes
     Route::get('/carier-sequence', 'carierSequence')->name('user.carier-sequence');
-    
+
     // Job listings page / User routes
     Route::get('/job-listings', 'jobListings')->name('user.job-listings.index');
-    
+
     // Instructor card request / User routes
     Route::get('/instructor-card-request', [InstructorCardController::class, 'create'])->name('user.instructor-card-request.create');
     Route::post('/instructor-card-request', [InstructorCardController::class, 'store'])->name('user.instructor-card-request.store');
-   
+
     // Show routes / User routes
     Route::get('/cv/{id}', 'showCv')->name('user.cv.show');
 
@@ -139,7 +142,7 @@ Route::prefix('user')->middleware(['auth', 'role:user'])->controller(UserControl
     Route::post('/education', 'storeEducation')->name('user.education.store');
     Route::post('/ability', 'storeAbility')->name('user.ability.store');
     Route::post('/language', 'storeLanguage')->name('user.language.store');
-   
+
     // Delete routes / User routes
     Route::post('/delete-experience', 'deleteExperience')->name('user.delete-experience');
     Route::post('/delete-education', 'deleteEducation')->name('user.delete-education');
@@ -148,7 +151,7 @@ Route::prefix('user')->middleware(['auth', 'role:user'])->controller(UserControl
 
     // update profile
     Route::post('/user/update-profile', 'updateProfile')->name('user.update-profile');
-    
+
     // Certificate download route for user
     Route::get('/certificate/{id}/download', [CertificateController::class, 'downloadCertificate'])->name('user.certificate.download');
 });
@@ -165,6 +168,52 @@ Route::prefix('student-portal')->middleware('portal.auth')->controller(PortalStu
 
 // Public certificate download route (for portals and users)
 Route::get('/certificate/{id}/download', [CertificateController::class, 'downloadCertificate'])->name('certificate.download');
+
+// Public certificate query route
+Route::get('/sertifika-sorgulama', function () {
+    // 1. Aşama: Kriterlere tam uyanları ara (fotoğraflı, izni açık ve sertifikalı)
+    $featuredTrainers = \App\Models\User::whereNotNull('profile_photo_url')
+        ->where('contact_info', true)
+        ->whereHas('userCertificates')
+        ->with('userCertificates.certificate')
+        ->inRandomOrder()
+        ->limit(3)
+        ->get();
+
+    // 2. Aşama: Eğer 3'ten azsa, diğer sertifikalı kullanıcılarla tamamla
+    if ($featuredTrainers->count() < 3) {
+        $needed = 3 - $featuredTrainers->count();
+        $excludedIds = $featuredTrainers->pluck('id');
+
+        $extras = \App\Models\User::whereHas('userCertificates')
+            ->whereNotIn('id', $excludedIds)
+            ->with('userCertificates.certificate')
+            ->inRandomOrder()
+            ->limit($needed)
+            ->get();
+
+        $featuredTrainers = $featuredTrainers->concat($extras);
+    }
+
+    // 3. Aşama: Hala 3'ten azsa, herhangi bir aktif kullanıcı ile tamamla (Mock veriden kaçınmak için)
+    if ($featuredTrainers->count() < 3) {
+        $needed = 3 - $featuredTrainers->count();
+        $excludedIds = $featuredTrainers->pluck('id');
+
+        $extras = \App\Models\User::whereNotIn('id', $excludedIds)
+            ->where('is_active', true)
+            ->inRandomOrder()
+            ->limit($needed)
+            ->get();
+
+        $featuredTrainers = $featuredTrainers->concat($extras);
+    }
+
+    // Son 3 iş ilanını getir
+    $latestJobs = \App\Models\JobListing::latest()->limit(3)->get();
+
+    return view('certificate-query', compact('featuredTrainers', 'latestJobs'));
+})->name('certificate-query.page');
 
 // Public company request form (no auth required)
 Route::get('/company-request', function () {

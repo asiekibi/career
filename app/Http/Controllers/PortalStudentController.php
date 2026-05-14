@@ -24,25 +24,40 @@ class PortalStudentController extends Controller
     public function searchCertificate(Request $request)
     {
         $request->validate([
-            'full_name' => 'required|string|max:255',
-            'register_no' => 'required|string|max:255',
+            'full_name' => 'nullable|string|max:255',
+            'register_no' => 'nullable|string|max:255',
             'tax_number' => 'nullable|string|max:50'
         ]);
 
-        // Ad soyadı ayır
-        $nameParts = explode(' ', trim($request->full_name), 2);
-        $firstName = $nameParts[0];
-        $lastName = isset($nameParts[1]) ? $nameParts[1] : '';
+        if (!$request->full_name && !$request->register_no) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Lütfen ad soyad veya sertifika numarasını giriniz.'
+            ]);
+        }
+
+        $query = UserCertificate::query();
+
+        if ($request->register_no) {
+            $query->where('register_no', $request->register_no);
+        }
+
+        if ($request->full_name) {
+            // Ad soyadı ayır
+            $nameParts = explode(' ', trim($request->full_name), 2);
+            $firstName = $nameParts[0];
+            $lastName = isset($nameParts[1]) ? $nameParts[1] : '';
+
+            $query->whereHas('user', function($q) use ($firstName, $lastName) {
+                $q->where('name', 'LIKE', $firstName . '%');
+                if ($lastName) {
+                    $q->where('surname', 'LIKE', $lastName . '%');
+                }
+            });
+        }
 
         // search by register_no and user name
-        $userCertificate = UserCertificate::where('register_no', $request->register_no)
-            ->whereHas('user', function($query) use ($firstName, $lastName) {
-                $query->where('name', 'LIKE', $firstName . '%');
-                if ($lastName) {
-                    $query->where('surname', 'LIKE', $lastName . '%');
-                }
-            })
-            ->with(['user.cvs.experiences', 'user.cvs.educations', 'user.cvs.abilities', 'user.cvs.languages', 'user.userBadges.badge', 'user.userCertificates.certificate'])
+        $userCertificate = $query->with(['user.cvs.experiences', 'user.cvs.educations', 'user.cvs.abilities', 'user.cvs.languages', 'user.userBadges.badge', 'user.userCertificates.certificate'])
             ->first();
 
         if (!$userCertificate) {
