@@ -574,11 +574,23 @@
       background: #fff;
       width: 100%;
       max-width: 480px;
+      max-height: 90vh;
+      overflow-y: auto;
       border-radius: 28px;
       box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
       position: relative;
-      overflow: hidden;
       animation: modalSlideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      scrollbar-width: thin;
+      scrollbar-color: #cbd5e1 transparent;
+    }
+
+    .asi-modal::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .asi-modal::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 10px;
     }
 
     @keyframes modalSlideUp {
@@ -1006,6 +1018,9 @@
                 <input type="password" name="password" class="asi-modal-input" placeholder="••••••••" required>
               </div>
               <button type="submit" class="asi-modal-btn">Giriş Yap</button>
+              <p class="text-center text-xs text-slate-400 mt-6 font-medium">Hesabınız yok mu? <a
+                  href="javascript:void(0)" onclick="switchTab('register')"
+                  class="text-slate-900 font-bold underline">Kayıt Ol</a></p>
             </form>
           </div>
 
@@ -1039,6 +1054,9 @@
                   required>
               </div>
               <button type="submit" class="asi-modal-btn">Kayıt Ol</button>
+              <p class="text-center text-xs text-slate-400 mt-6 font-medium">Zaten hesabınız var mı? <a
+                  href="javascript:void(0)" onclick="switchTab('login')"
+                  class="text-slate-900 font-bold underline">Giriş Yap</a></p>
             </form>
           </div>
         </div>
@@ -1175,21 +1193,29 @@
       const tabs = root.querySelectorAll('.asi-modal-tab');
       const tabContents = root.querySelectorAll('.asi-tab-content');
 
+      function switchTab(targetTab) {
+        // Update tabs
+        tabs.forEach(t => {
+          t.classList.remove('active');
+          if (t.getAttribute('data-tab') === targetTab) {
+            t.classList.add('active');
+          }
+        });
+
+        // Update content
+        tabContents.forEach(content => {
+          content.classList.remove('active');
+          if (content.id === targetTab + 'Tab') {
+            content.classList.add('active');
+          }
+        });
+      }
+
+      window.switchTab = switchTab; // Global access for inline onclick
+
       tabs.forEach(tab => {
         tab.addEventListener('click', () => {
-          const targetTab = tab.getAttribute('data-tab');
-
-          // Update tabs
-          tabs.forEach(t => t.classList.remove('active'));
-          tab.classList.add('active');
-
-          // Update content
-          tabContents.forEach(content => {
-            content.classList.remove('active');
-            if (content.id === targetTab + 'Tab') {
-              content.classList.add('active');
-            }
-          });
+          switchTab(tab.getAttribute('data-tab'));
         });
       });
 
