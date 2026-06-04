@@ -544,11 +544,11 @@
                             </div>
 
                             <!-- Veriliş Tarihi -->
-                            <div>
+                            <div class="hidden">
                                 <label for="acquisition_date" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Veriliş Tarihi</label>
                                 <div class="relative">
                                     <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-[20px]">calendar_month</span>
-                                    <input type="date" name="acquisition_date" id="acquisition_date" required
+                                    <input type="date" name="acquisition_date" id="acquisition_date"
                                            class="pl-11 pr-4 py-2.5 w-full rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50 focus:bg-white dark:focus:bg-gray-900 focus:ring-4 focus:ring-primary/10 focus:border-primary dark:text-white transition-all duration-200 sm:text-sm">
                                 </div>
                             </div>

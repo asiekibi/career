@@ -72,7 +72,7 @@
                     <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white" for="issuer">Veren Kurum</label>
                     <input class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary dark:focus:border-primary" id="issuer" name="issuer" placeholder="örn: Teknoloji Akademisi" type="text" value="Australia Sports Institute & Fitness Academy"/>
                 </div>
-                <div>
+                <div class="hidden">
                     <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white" for="issue_date">Veriliş Tarihi</label>
                     <input class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary dark:focus:border-primary" 
                            id="issue_date" 
@@ -153,7 +153,7 @@
                             <th class="px-4 py-3" scope="col">İçerik 1</th>
                             <th class="px-4 py-3" scope="col">İçerik 2</th>
                             <th class="px-4 py-3" scope="col">Veren Kurum</th>
-                            <th class="px-4 py-3" scope="col">Veriliş Tarihi</th>
+                            <th class="px-4 py-3 hidden" scope="col">Veriliş Tarihi</th>
                             <th class="px-4 py-3" scope="col">Geçerlilik Sonu</th>
                             <th class="px-4 py-3" scope="col">Puan</th>
                             <th class="px-4 py-3" scope="col"><span class="sr-only">İşlemler</span></th>
@@ -185,7 +185,7 @@
                                 <td class="px-4 py-4 break-words max-w-xs">{{ $userCertificate->content1 ?? 'Belirtilmemiş' }}</td>
                                 <td class="px-4 py-4 break-words max-w-xs">{{ $userCertificate->content2 ?? 'Belirtilmemiş' }}</td>
                                 <td class="px-4 py-4 break-words max-w-xs">{{ $userCertificate->issuing_institution ?? 'Belirtilmemiş' }}</td>
-                                <td class="px-4 py-4 whitespace-nowrap">
+                                <td class="px-4 py-4 whitespace-nowrap hidden">
                                     {{ $userCertificate->acquisition_date ? \Carbon\Carbon::parse($userCertificate->acquisition_date)->format('d.m.Y') : 'Belirtilmemiş' }}
                                 </td>
                                 <td class="px-4 py-4 whitespace-nowrap">
@@ -477,7 +477,7 @@
                                type="text"
                                value="Australia Sports Institute & Fitness Academy"/>
                     </div>
-                    <div>
+                    <div class="hidden">
                         <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white" for="edit_issue_date">Veriliş Tarihi</label>
                         <input class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary dark:focus:border-primary" 
                                id="edit_issue_date" 
