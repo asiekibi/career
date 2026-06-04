@@ -231,7 +231,7 @@
                         @foreach($student->userCertificates as $userCertificate)
                             <div class="flex items-center text-gray-700 dark:text-gray-300">
                                 <span class="material-symbols-outlined mr-2 text-primary text-sm">verified</span>
-                                <span class="text-sm lg:text-base">{{ $userCertificate->certificate->certificate_name ?? 'Sertifika adı bulunamadı' }}</span>
+                                <span class="text-sm lg:text-base">{{ $userCertificate->certificate->certificate_name ?? $userCertificate->custom_certificate_name ?? 'Sertifika adı bulunamadı' }}</span>
                             </div>
                         @endforeach
                     </div>

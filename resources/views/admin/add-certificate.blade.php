@@ -178,7 +178,7 @@
                                 data-issue-date="{{ $userCertificate->acquisition_date ? \Carbon\Carbon::parse($userCertificate->acquisition_date)->format('Y-m-d') : '' }}"
                                 data-validity-period="{{ $userCertificate->validity_period ?? '' }}">
                                 <th class="px-4 py-4 font-medium text-gray-900 dark:text-white break-words max-w-xs" scope="row">
-                                    {{ $userCertificate->certificate->certificate_name ?? 'Bilinmeyen Sertifika' }}
+                                    {{ $userCertificate->certificate->certificate_name ?? $userCertificate->custom_certificate_name ?? 'Bilinmeyen Sertifika' }}
                                 </th>
                                 <td class="px-4 py-4">{{ $userCertificate->register_no ?? 'Belirtilmemiş' }}</td>
                                 <td class="px-4 py-4">{{ $userCertificate->password ?? 'Belirtilmemiş' }}</td>
@@ -303,7 +303,7 @@
                     <div class="flex items-start justify-between mb-4">
                         <div class="flex-1">
                             <h4 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                                {{ $userCertificate->certificate->certificate_name ?? 'Bilinmeyen Sertifika' }}
+                                {{ $userCertificate->certificate->certificate_name ?? $userCertificate->custom_certificate_name ?? 'Bilinmeyen Sertifika' }}
                             </h4>
                         </div>
                         <div class="flex items-center gap-2 ml-2">

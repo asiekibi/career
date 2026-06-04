@@ -30,6 +30,8 @@ class UserCertificate extends Model
         'validity_period',
         'success_score',
         'course_scores',
+        'custom_certificate_name',
+        'file_path',
     ];
 
     /**

@@ -450,6 +450,102 @@ class CertificateController extends Controller
     {
         $userCertificate = UserCertificate::with(['user', 'certificate'])->findOrFail($id);
         
+        // Custom uploaded file support
+        if ($userCertificate->file_path) {
+            $filePath = public_path($userCertificate->file_path);
+            if (file_exists($filePath)) {
+                $ext = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
+                $password = $userCertificate->password ?? '12345';
+
+                if ($ext === 'pdf') {
+                    try {
+                        $pdf = new Fpdi();
+                        $pageCount = $pdf->setSourceFile($filePath);
+                        for ($pageNo = 1; $pageNo <= $pageCount; $pageNo++) {
+                            $tplId = $pdf->importPage($pageNo);
+                            $size = $pdf->getTemplateSize($tplId);
+                            if ($size['width'] > $size['height']) {
+                                $pdf->AddPage('L', [$size['width'], $size['height']]);
+                            } else {
+                                $pdf->AddPage('P', [$size['width'], $size['height']]);
+                            }
+                            $pdf->useTemplate($tplId, 0, 0, $size['width'], $size['height'], true);
+                        }
+                        
+                        // Apply password protection matching the admin flow
+                        $pdf->SetProtection(
+                            ['print', 'modify', 'copy', 'annot-forms'],
+                            $password,
+                            $password
+                        );
+                        
+                        $pdfContent = $pdf->Output('', 'S');
+                        $fileName = ($userCertificate->custom_certificate_name ?? 'Sertifika') . '.pdf';
+                        
+                        return response($pdfContent, 200)
+                            ->header('Content-Type', 'application/pdf')
+                            ->header('Content-Disposition', 'attachment; filename="' . $fileName . '"')
+                            ->header('Cache-Control', 'private, must-revalidate');
+                    } catch (\Exception $e) {
+                        Log::error('Could not encrypt user PDF: ' . $e->getMessage());
+                        // Fallback to downloading raw PDF
+                        $downloadName = ($userCertificate->custom_certificate_name ?? 'Sertifika') . '.' . $ext;
+                        return response()->download($filePath, $downloadName);
+                    }
+                } elseif (in_array($ext, ['jpeg', 'jpg', 'png', 'gif'])) {
+                    try {
+                        $pdf = new Fpdi();
+                        $imageInfo = getimagesize($filePath);
+                        if ($imageInfo) {
+                            $width = $imageInfo[0];
+                            $height = $imageInfo[1];
+                            
+                            // Assume 96 DPI for conversion
+                            $wMm = $width * 25.4 / 96;
+                            $hMm = $height * 25.4 / 96;
+                            
+                            if ($wMm > $hMm) {
+                                $pdf->AddPage('L', [$wMm, $hMm]);
+                            } else {
+                                $pdf->AddPage('P', [$wMm, $hMm]);
+                            }
+                            
+                            $pdf->SetMargins(0, 0, 0);
+                            $pdf->SetAutoPageBreak(false, 0);
+                            $pdf->Image($filePath, 0, 0, $wMm, $hMm, '', '', '', false, 300, '', false, false, 0);
+                        } else {
+                            $pdf->AddPage();
+                            $pdf->Image($filePath, 10, 10, 190);
+                        }
+                        
+                        // Apply password protection
+                        $pdf->SetProtection(
+                            ['print', 'modify', 'copy', 'annot-forms'],
+                            $password,
+                            $password
+                        );
+                        
+                        $pdfContent = $pdf->Output('', 'S');
+                        $fileName = ($userCertificate->custom_certificate_name ?? 'Sertifika') . '.pdf';
+                        
+                        return response($pdfContent, 200)
+                            ->header('Content-Type', 'application/pdf')
+                            ->header('Content-Disposition', 'attachment; filename="' . $fileName . '"')
+                            ->header('Cache-Control', 'private, must-revalidate');
+                    } catch (\Exception $e) {
+                        Log::error('Could not encrypt user image: ' . $e->getMessage());
+                        // Fallback to downloading raw image
+                        $downloadName = ($userCertificate->custom_certificate_name ?? 'Sertifika') . '.' . $ext;
+                        return response()->download($filePath, $downloadName);
+                    }
+                } else {
+                    // Other file types (if any) download directly
+                    $downloadName = ($userCertificate->custom_certificate_name ?? 'Sertifika') . '.' . $ext;
+                    return response()->download($filePath, $downloadName);
+                }
+            }
+        }
+        
         // Sertifika şablonunu veritabanından al
         $certificate = $userCertificate->certificate;
         

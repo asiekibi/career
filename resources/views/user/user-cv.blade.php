@@ -225,8 +225,9 @@
                             <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                                 <tr>
                                     <th class="px-6 py-3" scope="col">Sertifika Adı</th>
-                                    <th class="px-6 py-3" scope="col">Derecesi</th>
+                                    <th class="px-6 py-3" scope="col">Kodu</th>
                                     <th class="px-6 py-3" scope="col">Kurum</th>
+                                    <th class="px-6 py-3" scope="col">Şifre</th>
                                     <th class="px-6 py-3" scope="col">İşlemler</th>
                                 </tr>
                             </thead>
@@ -244,10 +245,11 @@
                                     @endphp
                                     <tr class="bg-white border-b dark:bg-background-dark dark:border-gray-700">
                                         <th class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white" scope="row">
-                                            {{ $userCertificate->certificate->certificate_name ?? 'Sertifika adı bulunamadı' }}
+                                            {{ $userCertificate->certificate->certificate_name ?? $userCertificate->custom_certificate_name ?? 'Sertifika adı bulunamadı' }}
                                         </th>
-                                        <td class="px-6 py-4">{{ $userCertificate->achievement_score ?? 'Belirtilmemiş' }}</td>
+                                        <td class="px-6 py-4">{{ $userCertificate->certificate_code ?? $userCertificate->register_no ?? 'Belirtilmemiş' }}</td>
                                         <td class="px-6 py-4">{{ $userCertificate->issuing_institution ?? 'Belirtilmemiş' }}</td>
+                                        <td class="px-6 py-4">{{ $userCertificate->password ?? 'Belirtilmemiş' }}</td>
                                         <td class="px-6 py-4">
                                             <a href="{{ route('certificate.download', $userCertificate->id) }}" 
                                                target="_blank"

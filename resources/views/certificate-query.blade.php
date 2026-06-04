@@ -809,6 +809,37 @@
       width: 18px;
       height: 18px;
     }
+
+    .asi-download-btn {
+      width: 100%;
+      height: 44px;
+      border-radius: 12px;
+      border: 0;
+      color: #fff;
+      font-weight: 700;
+      cursor: pointer;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+      background: linear-gradient(135deg, #059669, #10b981, #06b6d4);
+      background-size: 200% 200%;
+      gap: 8px;
+      box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+      transition: all 0.3s ease;
+      animation: gradientShift 4s ease infinite;
+    }
+
+    .asi-download-btn:hover {
+      transform: translateY(-2px) scale(1.01);
+      box-shadow: 0 8px 25px rgba(16, 185, 129, 0.45), 0 0 10px rgba(6, 182, 212, 0.3);
+    }
+
+    @keyframes gradientShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
   </style>
 </head>
 
@@ -874,6 +905,17 @@
                   <div class="asi-k">Durum</div>
                   <div class="asi-v" id="res-status-text">Doğrulandı</div>
                 </div>
+              </div>
+              
+              <!-- Sertifika İndirme Butonu -->
+              <div style="margin-top: 16px;">
+                <a href="#" id="res-download-btn" target="_blank"
+                   class="asi-download-btn">
+                   <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="#FFFFFF">
+                      <path d="M480-320 280-520l56-58 104 104v-326h80v326l104-104 56 58-200 200ZM240-160q-33 0-56.5-23.5T160-240v-120h80v120h480v-120h80v120q0 33-23.5 56.5T720-160H240Z"/>
+                   </svg>
+                   <span>Sertifikayı İndir</span>
+                </a>
               </div>
             </div>
           </div>
@@ -1142,9 +1184,20 @@
             statusText.textContent = 'Doğrulandı';
             statusText.style.color = '#16a34a';
 
+            // Güncellenen indirme butonu
+            const downloadBtn = document.getElementById('res-download-btn');
+            if (downloadBtn) {
+              downloadBtn.href = '/certificate/' + cert.id + '/download';
+              downloadBtn.style.display = 'flex';
+            }
+
             document.getElementById('resultCard').style.display = 'block';
           } else {
             alert(data.message || 'Sertifika bulunamadı.');
+            const downloadBtn = document.getElementById('res-download-btn');
+            if (downloadBtn) {
+              downloadBtn.style.display = 'none';
+            }
             document.getElementById('resultCard').style.display = 'none';
           }
         } catch (err) {

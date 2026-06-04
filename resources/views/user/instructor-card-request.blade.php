@@ -152,7 +152,7 @@
                                         <div class="flex justify-between items-start">
                                             <div>
                                                 <span class="text-sm font-medium text-gray-900 dark:text-white">
-                                                    {{ $userCertificate->certificate->certificate_name ?? 'Sertifika adı bulunamadı' }}
+                                                    {{ $userCertificate->certificate->certificate_name ?? $userCertificate->custom_certificate_name ?? 'Sertifika adı bulunamadı' }}
                                                 </span>
                                                 @if($userCertificate->certificate_code)
                                                     <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">

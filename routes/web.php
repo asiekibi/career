@@ -154,6 +154,9 @@ Route::prefix('user')->middleware(['auth', 'role:user'])->controller(UserControl
 
     // Certificate download route for user
     Route::get('/certificate/{id}/download', [CertificateController::class, 'downloadCertificate'])->name('user.certificate.download');
+    Route::post('/custom-certificate/store', [PortalStudentController::class, 'storeCustomCertificate'])->name('user.custom-certificate.store');
+    Route::post('/custom-certificate/delete', [PortalStudentController::class, 'deleteCustomCertificate'])->name('user.custom-certificate.delete');
+    Route::post('/custom-certificate/parse', [PortalStudentController::class, 'parseCustomCertificate'])->name('user.custom-certificate.parse');
 });
 
 // Portal routes - prefix ile grupla
@@ -164,6 +167,9 @@ Route::prefix('student-portal')->middleware('portal.auth')->controller(PortalStu
     Route::get('/career-sequence', 'careerSequence')->name('portal.career-sequence');
     Route::get('/partner-company', 'partnerCompany')->name('portal.partner-company');
     Route::post('/partner-company', 'storePartnerCompany')->name('portal.partner-company.store');
+    Route::post('/custom-certificate/store', 'storeCustomCertificate')->name('portal.custom-certificate.store');
+    Route::post('/custom-certificate/delete', 'deleteCustomCertificate')->name('portal.custom-certificate.delete');
+    Route::post('/custom-certificate/parse', 'parseCustomCertificate')->name('portal.custom-certificate.parse');
 });
 
 // Public certificate download route (for portals and users)
